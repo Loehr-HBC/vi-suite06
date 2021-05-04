@@ -380,25 +380,46 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
             en_idf.write(pynode.epwrite())
 
         en_idf.write("!-   ===========  ALL OBJECTS IN CLASS: REPORT VARIABLE ===========\n\n")
-        epentrydict = {"Output:Variable,*,Zone Air Temperature,hourly;\n": node.restt, "Output:Variable,*,Zone Other Equipment Total Heating Rate,hourly;\n": node.resoeg,
-                       "Output:Variable,*,Zone Air System Sensible Heating Rate,hourly;\n": node.restwh, "Output:Variable,*,Zone Air System Sensible Cooling Rate,hourly;\n": node.restwc,
-                       "Output:Variable,*,Zone Ideal Loads Supply Air Sensible Heating Rate, hourly;\n": node.ressah, "Output:Variable,*,Zone Ideal Loads Heat Recovery Sensible Heating Rate, hourly;\n": node.reshrhw,
-                       "Output:Variable,*,Zone Ideal Loads Supply Air Sensible Cooling Rate,hourly;\n": node.ressac,
-                       "Output:Variable,*,Zone Thermal Comfort Fanger Model PMV,hourly;\n": node.rescpm, "Output:Variable,*,Zone Thermal Comfort Fanger Model PPD,hourly;\n": node.rescpp, "Output:Variable,*,AFN Zone Infiltration Volume, hourly;\n": node.resim and enng['enviparams']['afn'],
-                       "Output:Variable,*,AFN Zone Infiltration Air Change Rate, hourly;\n": node.resiach and enng['enviparams']['afn'], "Output:Variable,*,Zone Infiltration Current Density Volume,hourly;\n": node.resim and not enng['enviparams']['afn'],
-                       "Output:Variable,*,Zone Infiltration Air Change Rate, hourly;\n": node.resiach and not enng['enviparams']['afn'], "Output:Variable,*,Zone Windows Total Transmitted Solar Radiation Rate,hourly;\n": node.reswsg,
-                       "Output:Variable,*,AFN Node CO2 Concentration,hourly;\n": node.resco2 and enng['enviparams']['afn'], "Output:Variable,*,Zone Air CO2 Concentration,hourly;\n": node.resco2 and not enng['enviparams']['afn'],
-                       "Output:Variable,*,Zone Mean Radiant Temperature,hourly;\n": node.resmrt, "Output:Variable,*,Zone People Occupant Count,hourly;\n": node.resocc,
-                       "Output:Variable,*,Zone Air Relative Humidity,hourly;\n": node.resh, "Output:Variable,*,Zone Air Heat Balance Surface Convection Rate, hourly;\n": node.resfhb,
-                       "Output:Variable,*,Zone Thermal Chimney Current Density Air Volume Flow Rate,hourly;\n": node.restcvf,
-                       "Output:Variable,*,Zone Thermal Chimney Mass Flow Rate,hourly;\n": node.restcmf, "Output:Variable,*,Zone Thermal Chimney Outlet Temperature,hourly;\n": node.restcot,
-                       "Output:Variable,*,Zone Thermal Chimney Heat Loss Energy,hourly;\n": node.restchl,"Output:Variable,*,Zone Thermal Chimney Heat Gain Energy,hourly;\n": node.restchg,
-                       "Output:Variable,*,Zone Thermal Chimney Volume,hourly;\n": node.restcv, "Output:Variable,*,Zone Thermal Chimney Mass,hourly;\n": node.restcm,
-                       "Output:Variable,*,Generator Produced DC Electric Energy,hourly;\n": node.respve, "Output:Variable,*,Generator Produced DC Electric Power,hourly;\n": node.respvw,
-                       "Output:Variable,*,Generator PV Array Efficiency,hourly;\n": node.respveff, "Output:Variable,*,Generator PV Cell Temperature,hourly;\n": node.respvt}
+        epentrydict = {
+            "Output:Variable,*,Zone Air Temperature,hourly;\n": node.restt,
+            "Output:Variable,*,Zone Other Equipment Total Heating Rate,hourly;\n": node.resoeg,
+            "Output:Variable,*,Zone Air System Sensible Heating Rate,hourly;\n": node.restwh,
+            "Output:Variable,*,Zone Air System Sensible Cooling Rate,hourly;\n": node.restwc,
+            "Output:Variable,*,Zone Ideal Loads Supply Air Sensible Heating Rate, hourly;\n": node.ressah,
+            "Output:Variable,*,Zone Ideal Loads Heat Recovery Sensible Heating Rate, hourly;\n": node.reshrhw,
+            "Output:Variable,*,Zone Ideal Loads Supply Air Sensible Cooling Rate,hourly;\n": node.ressac,
+            "Output:Variable,*,Zone Thermal Comfort Fanger Model PMV,hourly;\n": node.rescpm,
+            "Output:Variable,*,Zone Thermal Comfort Fanger Model PPD,hourly;\n": node.rescpp,
+            "Output:Variable,*,AFN Zone Infiltration Volume, hourly;\n": node.resim and enng['enviparams']['afn'],
+            "Output:Variable,*,AFN Zone Infiltration Air Change Rate, hourly;\n": node.resiach and enng['enviparams']['afn'],
+            "Output:Variable,*,Zone Infiltration Current Density Volume,hourly;\n": node.resim and not enng['enviparams']['afn'],
+            "Output:Variable,*,Zone Infiltration Air Change Rate, hourly;\n": node.resiach and not enng['enviparams']['afn'],
+            "Output:Variable,*,Zone Windows Total Transmitted Solar Radiation Rate,hourly;\n": node.reswsg,
+            "Output:Variable,*,AFN Node CO2 Concentration,hourly;\n": node.resco2 and enng['enviparams']['afn'],
+            "Output:Variable,*,Zone Air CO2 Concentration,hourly;\n": node.resco2 and not enng['enviparams']['afn'],
+            "Output:Variable,*,Zone Mean Radiant Temperature,hourly;\n": node.resmrt,
+            "Output:Variable,*,Zone People Occupant Count,hourly;\n": node.resocc,
+            "Output:Variable,*,Zone Air Relative Humidity,hourly;\n": node.resh,
+            "Output:Variable,*,Zone Air Heat Balance Surface Convection Rate, hourly;\n": node.resfhb,
+            "Output:Variable,*,Zone Thermal Chimney Current Density Air Volume Flow Rate,hourly;\n": node.restcvf,
+            "Output:Variable,*,Zone Thermal Chimney Mass Flow Rate,hourly;\n": node.restcmf,
+            "Output:Variable,*,Zone Thermal Chimney Outlet Temperature,hourly;\n": node.restcot,
+            "Output:Variable,*,Zone Thermal Chimney Heat Loss Energy,hourly;\n": node.restchl,
+            "Output:Variable,*,Zone Thermal Chimney Heat Gain Energy,hourly;\n": node.restchg,
+            "Output:Variable,*,Zone Thermal Chimney Volume,hourly;\n": node.restcv,
+            "Output:Variable,*,Zone Thermal Chimney Mass,hourly;\n": node.restcm,
+            "Output:Variable,*,Generator Produced DC Electric Energy,hourly;\n": node.respve,
+            "Output:Variable,*,Generator Produced DC Electric Power,hourly;\n": node.respvw,
+            "Output:Variable,*,Generator PV Array Efficiency,hourly;\n": node.respveff,
+            "Output:Variable,*,Generator PV Cell Temperature,hourly;\n": node.respvt,
+            }
 
-        for amb in ("Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;\n", "Output:Variable,*,Site Wind Speed,Hourly;\n", "Output:Variable,*,Site Wind Direction,Hourly;\n",
-                    "Output:Variable,*,Site Outdoor Air Relative Humidity,hourly;\n", "Output:Variable,*,Site Direct Solar Radiation Rate per Area,hourly;\n", "Output:Variable,*,Site Diffuse Solar Radiation Rate per Area,hourly;\n"):
+        for amb in ("Output:Variable,*,Site Outdoor Air Drybulb Temperature,Hourly;\n",
+                    "Output:Variable,*,Site Wind Speed,Hourly;\n",
+                    "Output:Variable,*,Site Wind Direction,Hourly;\n",
+                    "Output:Variable,*,Site Outdoor Air Relative Humidity,hourly;\n",
+                    "Output:Variable,*,Site Direct Solar Radiation Rate per Area,hourly;\n",
+                    "Output:Variable,*,Site Diffuse Solar Radiation Rate per Area,hourly;\n"):
             en_idf.write(amb)
 
         for ep in epentrydict:
