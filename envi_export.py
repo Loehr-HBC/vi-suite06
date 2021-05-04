@@ -382,6 +382,7 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
         en_idf.write("!-   ===========  ALL OBJECTS IN CLASS: REPORT VARIABLE ===========\n\n")
         epentrydict = {
             "Output:Variable,*,Zone Air Temperature,hourly;\n": node.restt,
+            "Output:Variable,*,Zone Operative Temperature,hourly;\n": node.restt,
             "Output:Variable,*,Zone Other Equipment Total Heating Rate,hourly;\n": node.resoeg,
             "Output:Variable,*,Zone Air System Sensible Heating Rate,hourly;\n": node.restwh,
             "Output:Variable,*,Zone Air System Sensible Cooling Rate,hourly;\n": node.restwc,
@@ -395,10 +396,13 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
             "Output:Variable,*,Zone Infiltration Current Density Volume,hourly;\n": node.resim and not enng['enviparams']['afn'],
             "Output:Variable,*,Zone Infiltration Air Change Rate, hourly;\n": node.resiach and not enng['enviparams']['afn'],
             "Output:Variable,*,Zone Windows Total Transmitted Solar Radiation Rate,hourly;\n": node.reswsg,
+            "Output:Variable,*,Zone Windows Total Heat Gain Rate,hourly;\n": node.reswsg,
+            "Output:Variable,*,Zone Windows Total Heat Loss Rate,hourly;\n": node.reswsg,
             "Output:Variable,*,AFN Node CO2 Concentration,hourly;\n": node.resco2 and enng['enviparams']['afn'],
             "Output:Variable,*,Zone Air CO2 Concentration,hourly;\n": node.resco2 and not enng['enviparams']['afn'],
             "Output:Variable,*,Zone Mean Radiant Temperature,hourly;\n": node.resmrt,
             "Output:Variable,*,Zone People Occupant Count,hourly;\n": node.resocc,
+            "Output:Variable,*,Zone People Sensible Heating Rate,hourly;\n": node.resocc,
             "Output:Variable,*,Zone Air Relative Humidity,hourly;\n": node.resh,
             "Output:Variable,*,Zone Air Heat Balance Surface Convection Rate, hourly;\n": node.resfhb,
             "Output:Variable,*,Zone Thermal Chimney Current Density Air Volume Flow Rate,hourly;\n": node.restcvf,
@@ -442,8 +446,15 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
                         for sno in snode['sname']:
                             en_idf.write("Output:Variable,{},AFN Surface Venting Window or Door Opening Factor,hourly;\n".format(sno))
 
-        en_idf.write("Output:Table:SummaryReports,\
-        AllSummary;              !- Report 1 Name")
+        en_idf.write("Output:Table:SummaryReports,            AllSummary; !- Report 1 Name\n")
+        en_idf.write("OutputControl:Table:Style,              HTML;       !- Column Separator\n")
+        en_idf.write("Output:VariableDictionary,              IDF;\n")
+
+        en_idf.write("Output:EnergyManagementSystem,")
+        en_idf.write("    Verbose,                 !- Actuator Availability Dictionary Reporting\n")
+        en_idf.write("    Verbose,                 !- Internal Variable Availability Dictionary Reporting\n")
+        en_idf.write("    Verbose;                 !- EMS Runtime Language Debug Output Level\n")
+
         en_idf.close()
 
         if svp['enparams'].get('hvactemplate'):
