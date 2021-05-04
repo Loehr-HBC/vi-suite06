@@ -22,7 +22,6 @@ import numpy
 from numpy import arange, histogram, array, int8, float16, empty, uint8, transpose
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 from subprocess import Popen, PIPE, call
-from collections import OrderedDict
 from datetime import datetime as dt
 from math import cos, sin, pi, ceil, tan, radians
 from time import sleep
@@ -1749,7 +1748,7 @@ class NODE_OT_Chart(bpy.types.Operator, ExportHelper):
 
     def invoke(self, context, event):
         node = context.node
-        innodes = list(OrderedDict.fromkeys([inputs.links[0].from_node for inputs in node.inputs if inputs.links]))
+        innodes = [inpt.links[0].from_node for inpt in node.inputs if inpt.links]
         rl = innodes[0]['reslists']
         zrl = list(zip(*rl))
         year = innodes[0]['year']

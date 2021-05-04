@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from collections import OrderedDict
 from .vi_func import newrow, retdates, logentry, get_materials
 
 try:
@@ -188,10 +187,15 @@ class VI_PT_3D(bpy.types.Panel):
                         newrow(layout, 'Enable:', svp, 'vi_display_rp')
 
                         if svp.vi_display_rp:
-                            propdict = OrderedDict([("Selected only:", "vi_display_sel_only"), ("Visible only:", "vi_display_vis_only"), ("Font size:", "vi_display_rp_fs"), ("Font colour:", "vi_display_rp_fc"), ("Font shadow:", "vi_display_rp_sh"), ("Shadow colour:", "vi_display_rp_fsh"), ("Position offset:", "vi_display_rp_off")])
-
-                            for prop in propdict.items():
-                                newrow(layout, prop[0], svp, prop[1])
+                            for title, prop in [
+                                ("Selected only:",  "vi_display_sel_only"),
+                                ("Visible only:",   "vi_display_vis_only"),
+                                ("Font size:",      "vi_display_rp_fs"),
+                                ("Font colour:",    "vi_display_rp_fc"),
+                                ("Font shadow:",    "vi_display_rp_sh"),
+                                ("Shadow colour:",  "vi_display_rp_fsh"),
+                                ("Position offset:","vi_display_rp_off")]:
+                                newrow(layout, title, svp, prop)
 
                         row = layout.row()
                         row.label(text="{:-<60}".format(""))

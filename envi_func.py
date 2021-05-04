@@ -17,9 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy, mathutils, colorsys, os
-from collections import OrderedDict
-from numpy import arange, array
-from numpy import sum as nsum
+from numpy import arange, array, sum as nsum
 from .vi_func import logentry
 from .vi_dicts import rnu, arnu, zresdict, envdict, enresdict, presdict, lresdict
 
@@ -375,43 +373,43 @@ def enparametric(self, context):
 def retrmenus(innode, node, axis):
     rl = innode['reslists']
     zrl = list(zip(*rl))
-    ftype = [(frame, frame, "Plot "+frame) for frame in list(OrderedDict.fromkeys(zrl[0])) if frame != 'All']
+    ftype = [(frame, frame, "Plot "+frame) for frame in zrl[0] if frame != 'All']
     frame = 'All' if node.parametricmenu == '1' and len(ftype) > 1 else zrl[0][0]
     if axis == 'X-axis':
-        rtypes = list(OrderedDict.fromkeys([zrl[1][ri] for ri, r in enumerate(zrl[1]) if zrl[0][ri] == frame]))
+        rtypes = [zrl[1][ri] for ri, r in enumerate(zrl[1]) if zrl[0][ri] == frame]
     else:
-        rtypes = list(OrderedDict.fromkeys([zrl[1][ri] for ri, r in enumerate(zrl[1]) if zrl[0][ri] == frame and zrl[1][ri] != 'Time']))
+        rtypes = [zrl[1][ri] for ri, r in enumerate(zrl[1]) if zrl[0][ri] == frame and zrl[1][ri] != 'Time']
     rtype = [(metric, metric, "Plot " + metric) for metric in rtypes]
     ctype = [(metric, metric, "Plot " + metric) for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Climate' and zrl[0][m] == frame]
-    ztypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Zone' and zrl[0][m] == frame]))
+    ztypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Zone' and zrl[0][m] == frame]
     ztype = [(metric, metric, "Plot " + metric) for metric in ztypes]
-    ptypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Position' and zrl[0][m] == frame]))
+    ptypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Position' and zrl[0][m] == frame]
     ptype = [(metric, metric, "Plot " + metric) for metric in ptypes]
-    prtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Position' and zrl[0][m] == frame]))
+    prtypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Position' and zrl[0][m] == frame]
     prtype = [(metric, metric, "Plot " + metric) for metric in prtypes]
-    camtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Camera' and zrl[0][m] == frame]))
+    camtypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Camera' and zrl[0][m] == frame]
     camtype = [(metric, metric, "Plot " + metric) for metric in camtypes]
-    camrtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Camera' and zrl[0][m] == frame]))
+    camrtypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Camera' and zrl[0][m] == frame]
     camrtype = [(metric, metric, "Plot " + metric) for metric in camrtypes]
-    ltypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Linkage' and zrl[0][m] == frame]))
+    ltypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Linkage' and zrl[0][m] == frame]
     ltype = [(metric, metric, "Plot " + metric) for metric in ltypes]
-    lrtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Linkage' and zrl[0][m] == frame]))
+    lrtypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Linkage' and zrl[0][m] == frame]
     lrtype = [(metric, metric, "Plot " + metric) for metric in lrtypes]
-    entypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'External' and zrl[0][m] == frame]))
+    entypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'External' and zrl[0][m] == frame]
     entype = [(metric, metric, "Plot " + metric) for metric in entypes]
-    enrtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'External' and zrl[0][m] == frame]))
+    enrtypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'External' and zrl[0][m] == frame]
     enrtype = [(metric, metric, "Plot " + metric) for metric in enrtypes]
-    chimtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Chimney' and zrl[0][m] == frame]))
+    chimtypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Chimney' and zrl[0][m] == frame]
     chimtype = [(metric, metric, "Plot " + metric) for metric in chimtypes]
-    chimrtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Chimney' and zrl[0][m] == frame]))
+    chimrtypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Chimney' and zrl[0][m] == frame]
     chimrtype = [(metric, metric, "Plot " + metric) for metric in chimrtypes]
-    powtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Power' and zrl[0][m] == frame]))
+    powtypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Power' and zrl[0][m] == frame]
     powtype = [(metric, metric, "Plot " + metric) for metric in powtypes]
-    powrtypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Power' and zrl[0][m] == frame]))
+    powrtypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Power' and zrl[0][m] == frame]
     powrtype = [(metric, metric, "Plot " + metric) for metric in powrtypes]
-    probetypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Probe' and zrl[0][m] == frame]))
+    probetypes = [metric for m, metric in enumerate(zrl[2]) if zrl[1][m] == 'Probe' and zrl[0][m] == frame]
     probetype = [(metric, metric, "Plot " + metric) for metric in probetypes]
-    probertypes = list(OrderedDict.fromkeys([metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Probe' and zrl[0][m] == frame]))
+    probertypes = [metric for m, metric in enumerate(zrl[3]) if zrl[1][m] == 'Probe' and zrl[0][m] == frame]
     probertype = [(metric, metric, "Plot " + metric) for metric in probertypes]
     fmenu = bpy.props.EnumProperty(items=ftype, name="", description="Frame number", default = ftype[0][0])
     rtypemenu = bpy.props.EnumProperty(items=rtype, name="", description="Result types", default = rtype[0][0])

@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy, os, sys, inspect, multiprocessing, mathutils, bmesh, datetime, colorsys, bgl, blf, bpy_extras, math
-#from collections import OrderedDict
 from subprocess import Popen
 from numpy import array, digitize, amax, amin, average, clip, char, int8, frombuffer, uint8, multiply, float32
 #set_printoptions(threshold=nan)
