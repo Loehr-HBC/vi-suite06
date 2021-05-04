@@ -1,0 +1,7 @@
+# Byte-compiled / optimized / DLL files (exclude folders first for speed)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
