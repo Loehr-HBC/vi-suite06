@@ -27,7 +27,7 @@ def radfexport(scene, export_op, connode, geonode, frames):
     for frame in frames:
         livi_export.fexport(scene, frame, export_op, connode, geonode, pause = 1)
 
-def li_calc(calc_op, simnode, simacc, **kwargs): 
+def li_calc(calc_op, simnode, simacc, **kwargs):
     scene = bpy.context.scene
     svp = scene.vi_params
     vl = bpy.context.view_layer
@@ -39,8 +39,11 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
     frames = range(svp['liparams']['fs'], svp['liparams']['fe'] + 1) if not kwargs.get('genframe') else [kwargs['genframe']]
     os.chdir(svp['viparams']['newdir'])
     rtcmds, rccmds = [], []
-    builddict = {'0': ('School', 'Higher Education', 'Healthcare', 'Residential', 'Retail', 'Office & Other'), '2': ('School', 'Higher Education', 'Healthcare', 'Residential', 'Retail', 'Office & Other'), '3': ('Office/Education/Commercial', 'Healthcare')}
-    
+    builddict = {
+        '0': ('School', 'Higher Education', 'Healthcare', 'Residential', 'Retail', 'Office & Other'),
+        '2': ('School', 'Higher Education', 'Healthcare', 'Residential', 'Retail', 'Office & Other'),
+        '3': ('Office/Education/Commercial', 'Healthcare')}
+
     for f, frame in enumerate(frames):
         if simnode.pmap:
             pmappfile = open(os.path.join(svp['viparams']['newdir'], 'viprogress'), 'w')
@@ -54,30 +57,30 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
            'fatal - no valid photon ports found\n': 'Re-export the geometry'}
             amentry, pportentry, cpentry, cpfileentry = retpmap(simnode, frame, scene)
             open('{}.pmapmon'.format(svp['viparams']['filebase']), 'w')
-            
+
             if context == 'Basic' or (context == 'CBDM' and subcontext == '0'):
                 pmcmd = 'mkpmap -n {6} -t 10 -e "{1}.pmapmon" -fo+ -bv+ -apD 0.001 {0} -apg "{1}-{2}.gpm" {3} {4} {5} "{1}-{2}.oct"'.format(pportentry, svp['viparams']['filebase'], frame, simnode.pmapgno, cpentry, amentry, svp['viparams']['wnproc'])
             else:
                 pmcmd = 'mkpmap -n {3} -t 10 -e "{1}.pmapmon" -fo+ -bv+ -apC "{1}.cpm" {0} "{1}-{2}.oct"'.format(simnode.pmapgno, svp['viparams']['filebase'], frame, svp['viparams']['wnproc'])
-            
+
             logentry('Generating photon map: {}'.format(pmcmd))
             pmrun = Popen(shlex.split(pmcmd), stderr = PIPE, stdout = PIPE)
-                
-            while pmrun.poll() is None:   
+
+            while pmrun.poll() is None:
                 sleep(10)
                 with open('{}.pmapmon'.format(svp['viparams']['filebase']), 'r') as vip:
                     for line in vip.readlines()[::-1]:
                         if '%' in line:
                             curres = float(line.split()[6][:-2])/len(frames)
                             break
-                                
-                if pfile.check(curres) == 'CANCELLED': 
-                    pmrun.kill()                                   
+
+                if pfile.check(curres) == 'CANCELLED':
+                    pmrun.kill()
                     return 'CANCELLED'
-            
+
             if kivyrun.poll() is None:
                 kivyrun.kill()
-                    
+
             with open('{}.pmapmon'.format(svp['viparams']['filebase']), 'r') as pmapfile:
                 pmlines = pmapfile.readlines()
                 if pmlines:
@@ -91,7 +94,7 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
                 else:
                     calc_op.report({'ERROR'}, 'There is a problem with pmap generation. Check there are no non-ascii characters in the project directory file path')
                     return 'CANCELLED'
-                
+
         if context == 'Basic' or (context == 'CBDM' and subcontext == '0'):# or (context == 'Compliance' and int(subcontext) < 3):
             if os.path.isfile("{}-{}.af".format(svp['viparams']['filebase'], frame)):
                 os.remove("{}-{}.af".format(svp['viparams']['filebase'], frame))
@@ -102,7 +105,7 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
         else:
             if simnode.pmap:
                 rccmds.append('rcontrib -w  -h -I -fo -ap {2}.cpm -bn {4} {0} -n {1} -f tregenza.cal -b tbin -m sky_glow "{2}-{3}.oct"'.format(simnode['radparams'], svp['viparams']['nproc'], svp['viparams']['filebase'], frame, patches))
-            else:   
+            else:
                 rccmds.append('rcontrib -w  -h -I -fo -bn {} {} -n {} -f tregenza.cal -b tbin -m sky_glow "{}-{}.oct"'.format(patches, simnode['radparams'], svp['viparams']['nproc'], svp['viparams']['filebase'], frame))
 
     try:
@@ -122,7 +125,7 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
         curres = sum(tpoints[:oi] * len(frames))
         selobj(vl, o)
         ovp['omax'], ovp['omin'], ovp['oave']  = {}, {}, {}
-        
+
         if context == 'Basic':
             bccout = ovp.basiccalcapply(scene, frames, rtcmds, simnode, curres, pfile)
             if bccout == 'CANCELLED':
@@ -131,7 +134,7 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
                 return 'CANCELLED'
             else:
                 reslists += bccout
-                
+
         elif context == 'CBDM' and subcontext == '0':
             lhout = ovp.lhcalcapply(scene, frames, rtcmds, simnode, curres, pfile)
             if lhout  == 'CANCELLED':
@@ -140,7 +143,7 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
                 return 'CANCELLED'
             else:
                 reslists += lhout
-        
+
         elif (context == 'CBDM' and subcontext in ('1', '2')):# or (context == 'Compliance' and subcontext == '3'):
             cbdmout = ovp.udidacalcapply(scene, frames, rccmds, simnode, curres, pfile)
             if cbdmout == 'CANCELLED':
@@ -149,10 +152,10 @@ def li_calc(calc_op, simnode, simacc, **kwargs):
                 return 'CANCELLED'
             else:
                 reslists += cbdmout
-           
+
     if kivyrun.poll() is None:
         kivyrun.kill()
-        
+
     return reslists
-            
+
 
