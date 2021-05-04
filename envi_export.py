@@ -51,7 +51,7 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
             for bad_node in badnodes:
                 bad_node.hide = False
             exp_op.report({'ERROR'}, 'Bad node(s) in the EnVi network:\n        '
-                '\n        '.join(node.name for node in badnodes)
+                + '\n        '.join(node.name for node in badnodes) +
                 '\n Delete nodes if not needed or make valid connections')
             return
 
