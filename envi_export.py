@@ -44,33 +44,52 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
         enng = [ng for ng in bpy.data.node_groups if ng.bl_label == 'EnVi Network'][0]
 #        enng = node.id_data
         enng['enviparams']['afn'] = 0
-        badnodes = [node for node in enng.nodes if node.use_custom_color]
 
-        for node in badnodes:
-            node.hide = 0
-            exp_op.report({'ERROR'}, 'Bad {} node in the EnVi network. Delete the node if not needed or make valid connections'.format(node.name))
+        # unhide all bad nodes and list them. TODO: dont abuse custom_color-flag
+        badnodes = [node for node in enng.nodes if node.use_custom_color]
+        if badnodes:
+            for bad_node in badnodes:
+                bad_node.hide = False
+            exp_op.report({'ERROR'}, 'Bad node(s) in the EnVi network:\n        '
+                '\n        '.join(node.name for node in badnodes)
+                '\n Delete nodes if not needed or make valid connections')
             return
 
         if any([node.bl_idname in ('No_En_Net_SSFlow', 'No_En_Net_SFlow') for node in enng.nodes]):
             enng['enviparams']['afn'] = 1
 
-        en_idf.write("!- Blender -> EnergyPlus\n!- Using the EnVi export scripts\n!- Author: Ryan Southall\n!- Date: {}\n\nVERSION,{};\n\n".format(datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), svp['enparams']['epversion']))
-        params = ('Name', 'North Axis (deg)', 'Terrain', 'Loads Convergence Tolerance Value', 'Temperature Convergence Tolerance Value (deltaC)',
-                  'Solar Distribution', 'Maximum Number of Warmup Days(from MLC TCM)')
-        paramvs = ((node.loc, 'Default')[not node.loc], '0.00', ("City", "Urban", "Suburbs", "Country", "Ocean")[int(node.terrain)], '0.004', '0.4', 'FullInteriorAndExteriorWithReflections', '15')
+        en_idf.write("!- Blender -> EnergyPlus\n!- Using the EnVi export scripts"
+            "\n!- Author: Ryan Southall\n!- Date: {}\n\nVERSION,{};\n\n".format(
+            datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), svp['enparams']['epversion']))
+        params = ('Name', 'North Axis (deg)', 'Terrain', 'Loads Convergence Tolerance Value',
+            'Temperature Convergence Tolerance Value (deltaC)', 'Solar Distribution',
+            'Maximum Number of Warmup Days(from MLC TCM)')
+        paramvs = ((node.loc, 'Default')[not node.loc], '0.00', ("City", "Urban",
+            "Suburbs", "Country", "Ocean")[int(node.terrain)], '0.004', '0.4',
+            'FullInteriorAndExteriorWithReflections', '15')
         en_idf.write(epentry('Building', params, paramvs))
-        params = ('Time Step in Hours', 'Algorithm', 'Algorithm', 'Default frequency of calculation', 'no zone sizing, system sizing, plant sizing, no design day, use weather file')
-        paramvs = ('Timestep, {}'.format(node.timesteps), 'SurfaceConvectionAlgorithm:Inside, TARP', 'SurfaceConvectionAlgorithm:Outside, TARP',
-                   'ShadowCalculation, {}, Periodic'.format(("PolygonClipping", "PixelCounting")[int(node.shadow_calc)]), 'SimulationControl, No,No,No,No,Yes')
+        params = ('Time Step in Hours', 'Algorithm', 'Algorithm',
+            'Default frequency of calculation', 'no zone sizing, system sizing,'
+            ' plant sizing, no design day, use weather file')
+        paramvs = ('Timestep, {}'.format(node.timesteps),
+            'SurfaceConvectionAlgorithm:Inside, TARP',
+            'SurfaceConvectionAlgorithm:Outside, TARP',
+            'ShadowCalculation, {}, Periodic'.format(("PolygonClipping",
+                                "PixelCounting")[int(node.shadow_calc)]),
+            'SimulationControl, No,No,No,No,Yes')
 
         for ppair in zip(params, paramvs):
             en_idf.write(epentry('', [ppair[0]], [ppair[1]]) + ('', '\n\n')[ppair[0] == params[-1]])
 
         en_idf.write('HeatBalanceAlgorithm, ConductionTransferFunction;\n\n')
 
-        params = ('Name', 'Begin Month', 'Begin Day of Month', 'Begin Year', 'End Month', 'End Day of Month', 'End Year', 'Day of Week for Start Day', 'Use Weather File Holidays and Special Days', 'Use Weather File Daylight Saving Period',\
-        'Apply Weekend Holiday Rule', 'Use Weather File Rain Indicators', 'Use Weather File Snow Indicators')
-        paramvs = ((node.loc, 'Default')[not node.loc], node.sdate.month, node.sdate.day, '', node.edate.month, node.edate.day, '', "", "Yes", "Yes", "No", "Yes", "Yes")
+        params = ('Name', 'Begin Month', 'Begin Day of Month', 'Begin Year',
+            'End Month', 'End Day of Month', 'End Year', 'Day of Week for Start Day',
+            'Use Weather File Holidays and Special Days',
+            'Use Weather File Daylight Saving Period', 'Apply Weekend Holiday Rule',
+            'Use Weather File Rain Indicators', 'Use Weather File Snow Indicators')
+        paramvs = ((node.loc, 'Default')[not node.loc], node.sdate.month, node.sdate.day, '',
+            node.edate.month, node.edate.day, '', "", "Yes", "Yes", "No", "Yes", "Yes")
         en_idf.write(epentry('RunPeriod', params, paramvs))
 
         en_idf.write("!-   ===========  ALL OBJECTS IN CLASS: MATERIAL & CONSTRUCTIONS ===========\n\n")
@@ -110,13 +129,19 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
                 znode.update()
 
                 cvp = coll.vi_params
-                cvp['enparams']['floorarea'] = sum([o.vi_params['enparams']['floorarea'] for o in coll.objects if o.vi_params.envi_type == '0'])
+                cvp['enparams']['floorarea'] = sum([o.vi_params['enparams']['floorarea']
+                        for o in coll.objects if o.vi_params.envi_type == '0'])
 
     #        for obj in [obj for obj in bpy.context.scene.objects if obj.layers[1] == True and obj.envi_type in ('0', '2')]:
                 if coll.objects[0].vi_params.envi_type in ('0', '2'):
-                    params = ('Name', 'Direction of Relative North (deg)', 'X Origin (m)', 'Y Origin (m)', 'Z Origin (m)', 'Type', 'Multiplier', 'Ceiling Height (m)', 'Volume (m3)',
-                              'Floor Area (m2)', 'Zone Inside Convection Algorithm', 'Zone Outside Convection Algorithm', 'Part of Total Floor Area')
-                    paramvs = (coll.name, 0, 0, 0, 0, 1, 1, 'autocalculate', '{:.1f}'.format(coll.objects[0]['volume']), 'autocalculate', caidict[znode.envi_ica], caodict[znode.envi_oca], 'Yes')
+                    params = ('Name', 'Direction of Relative North (deg)',
+                        'X Origin (m)', 'Y Origin (m)', 'Z Origin (m)', 'Type',
+                        'Multiplier', 'Ceiling Height (m)', 'Volume (m3)',
+                        'Floor Area (m2)', 'Zone Inside Convection Algorithm',
+                        'Zone Outside Convection Algorithm', 'Part of Total Floor Area')
+                    paramvs = (coll.name, 0, 0, 0, 0, 1, 1, 'autocalculate',
+                        '{:.1f}'.format(coll.objects[0]['volume']), 'autocalculate',
+                        caidict[znode.envi_ica], caodict[znode.envi_oca], 'Yes')
                     en_idf.write(epentry('Zone', params, paramvs))
 
         params = ('Starting Vertex Position', 'Vertex Entry Direction', 'Coordinate System')
@@ -125,7 +150,9 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
 
         en_idf.write("!-   ===========  ALL OBJECTS IN CLASS: SURFACE DEFINITIONS ===========\n\n")
 
-        wfrparams = ['Name', 'Surface Type', 'Construction Name', 'Zone Name', 'Outside Boundary Condition', 'Outside Boundary Condition Object', 'Sun Exposure', 'Wind Exposure', 'View Factor to Ground', 'Number of Vertices']
+        wfrparams = ['Name', 'Surface Type', 'Construction Name', 'Zone Name',
+            'Outside Boundary Condition', 'Outside Boundary Condition Object',
+            'Sun Exposure', 'Wind Exposure', 'View Factor to Ground', 'Number of Vertices']
 
         gens = []
 
@@ -226,7 +253,8 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
         params = ['Name']
         paramvs = ["Any Number"]
         en_idf.write(epentry('ScheduleTypeLimits', params, paramvs))
-        en_idf.write(epschedwrite('Default outdoor CO2 levels 400 ppm', 'Any number', ['Through: 12/31'], [['For: Alldays']], [[[['Until: 24:00,{}'.format('400')]]]]))
+        en_idf.write(epschedwrite('Default outdoor CO2 levels 400 ppm', 'Any number',
+            ['Through: 12/31'], [['For: Alldays']], [[[['Until: 24:00,{}'.format('400')]]]]))
 
         for zn in zonenodes:
             for schedtype in ('VASchedule', 'TSPSchedule', 'HVAC', 'Occupancy', 'Equipment', 'Infiltration'):
@@ -434,11 +462,13 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
             if node.resl12ms:
                 for cnode in [cnode for cnode in enng.nodes if cnode.bl_idname == 'No_En_Net_SFlow']:
                     for sno in cnode['sname']:
-                        en_idf.write("Output:Variable,{0},AFN Linkage Node 1 to Node 2 Volume Flow Rate,hourly;\nOutput:Variable,{0},AFN Linkage Node 2 to Node 1 Volume Flow Rate,hourly;\n".format(sno))
+                        en_idf.write("Output:Variable,{0},AFN Linkage Node 1 to Node 2 Volume Flow Rate,hourly;\n"
+                                     "Output:Variable,{0},AFN Linkage Node 2 to Node 1 Volume Flow Rate,hourly;\n".format(sno))
                         en_idf.write("Output:Variable,{0},AFN Linkage Node 1 to Node 2 Pressure Difference,hourly;\n".format(sno))
                 for snode in [snode for snode in enng.nodes if snode.bl_idname == 'No_En_Net_SSFlow']:
                     for sno in snode['sname']:
-                        en_idf.write("Output:Variable,{0},AFN Linkage Node 1 to Node 2 Volume Flow Rate,hourly;\nOutput:Variable,{0},AFN Linkage Node 2 to Node 1 Volume Flow Rate,hourly;\n".format(sno))
+                        en_idf.write("Output:Variable,{0},AFN Linkage Node 1 to Node 2 Volume Flow Rate,hourly;\n"
+                                     "Output:Variable,{0},AFN Linkage Node 2 to Node 1 Volume Flow Rate,hourly;\n".format(sno))
                         en_idf.write("Output:Variable,{0},AFN Linkage Node 1 to Node 2 Pressure Difference,hourly;\n".format(sno))
             if node.reslof == True:
                 for snode in [snode for snode in enng.nodes if snode.bl_idname == 'No_En_Net_SSFlow']:
@@ -461,12 +491,14 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
             os.chdir(svp['viparams']['newdir'])
             ehtempcmd = "ExpandObjects {}".format(os.path.join(svp['viparams']['newdir'], 'in.idf'))
             subprocess.call(ehtempcmd.split())
-            shutil.copyfile(os.path.join(svp['viparams']['newdir'], 'expanded.idf'), os.path.join(svp['viparams']['newdir'], 'in.idf'))
+            shutil.copyfile(os.path.join(svp['viparams']['newdir'], 'expanded.idf'),
+                            os.path.join(svp['viparams']['newdir'], 'in.idf'))
 
         if 'in{}.idf'.format(frame) not in [im.name for im in bpy.data.texts]:
             bpy.data.texts.load(os.path.join(svp['viparams']['newdir'], 'in{}.idf'.format(frame)))
         else:
-            bpy.data.texts['in{}.idf'.format(frame)].filepath = os.path.join(svp['viparams']['newdir'], 'in{}.idf'.format(frame))
+            bpy.data.texts['in{}.idf'.format(frame)].filepath = os.path.join(
+                svp['viparams']['newdir'], 'in{}.idf'.format(frame))
 
 def pregeo(context, op):
     scene = context.scene
