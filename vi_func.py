@@ -1588,7 +1588,8 @@ def sunpath(context):
             return
 
     elif svp['spparams'].get('suns') and svp['spparams']['suns'] == '1':
-        all_alts = [solarPosition(d, svp.sp_sh, svp.latitude, svp.longitude)[0] for d in (20, 50, 80, 110, 140, 171, 201, 231, 261, 292, 323, 354)]
+        all_alts = [solarPosition(d, svp.sp_sh, svp.latitude, svp.longitude)[0]
+            for d in (20, 50, 80, 110, 140, 171, 201, 231, 261, 292, 323, 354)]
         valid_suns = len([aa for aa in all_alts if aa > 0])
 
         for d, day in enumerate((20, 50, 80, 110, 140, 171, 201, 231, 261, 292, 323, 354)):

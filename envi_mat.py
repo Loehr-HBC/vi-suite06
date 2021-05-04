@@ -33,7 +33,15 @@ class envi_materials(object):
     def update(self):
         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
             'EPFiles', '{}'.format('Material_database.json')), 'r') as mat_jfile:
-            mat_dict = json.loads(mat_jfile.read())
+            # First lets pull the json. The optional object_pairs_hook=OrderedDict
+            # keeps the entries in the original order from the json-file.
+            mat_od = json.loads(mat_jfile.read(), object_pairs_hook=OrderedDict)
+            # Now, we really want a sorted sorted dictionary, so lets build one
+            mat_dict = OrderedDict((key, OrderedDict(sorted(subdict.items())))
+                                    for key,subdict in sorted(mat_od.items()))
+            # Now the only reason why anyone should care for the ...d dicts
+            # would be if they, or the other ones, could be changed.
+            # so WHY DO WE HAVE THEM SEPERATELY?
 
         self.metal_datd = mat_dict['Metal']
         self.brick_datd = mat_dict['Brick']
