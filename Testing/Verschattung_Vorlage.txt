@@ -1,0 +1,172 @@
+! - 5678901234567890123456789012345678901234567890123456789012345678901234567890
+!        10        20        30        40        50        60        70        80
+! Das Ausrufezeichen beginnt das Kommentar
+! Links zu den Infos (2 Zeilen => Basis-Link, Hashtag => Unterabschnitt):
+!   https://bigladdersoftware.com/epx/docs/9-5/input-output-reference
+!       /group-thermal-zone-description-geometry.html
+!       #field-shading-control-type
+!       #field-shading-device-material-name
+! Links zur beschreibung der Verschattungen (Vorhang, Lamellen, ...)
+! Je ein Beispiel ganz unten ...
+!   https://bigladdersoftware.com/epx/docs/9-5/input-output-reference
+!       /group-surface-construction-elements.html
+!       #windowmaterialshade
+!       #windowmaterialblind
+
+! - ### Verschattungssteuerung
+WindowShadingControl,
+    ShadingControl,                         ! - Name
+    EN_COLLECTION,                          ! - Zone Name => zu steuernde Zone
+    1,                                      ! - Shading Control Sequence Number
+            ! ... die Prioritaet bei mehreren Verschattungsanlagen in der Zone
+            ! ... 1 ist die Erste die schliesst, 2 die zweite, etc.
+    ExteriorBlind,                          ! - Shading Type
+    Verglasung__verschattet,                ! - Shaded Construction
+            ! ... fuer komplexe Verschattungen notwendig, Standard.
+    OnNightIfHeatingAndOnDayIfCooling,      ! - Control Type => Art der Steuerung
+            ! ... es gibt sehr viele Steuerungen, die meist 1-2 SetPoints brauchen
+            ! ... sie finden sich im abschnitt #field-shading-control-type
+    ,                                       ! - Control-Schedule Name
+    15,                                     ! - SetPoint1 (W)
+            ! ... OnNightIfHeatingAndOnDayIfCooling braucht eine Heizlast in Watt
+    NO,                                     ! - Is Control scheduled? # Default ist NO
+    NO,                                     ! - Is Glare-Control aktive? # Default ist NO
+    ,                                       ! - Shading Material
+            ! ... Name einer Verschattungsanlage (statt der verschatteten Konstruktion).
+            ! ... Funktioniert nur bei Interior/Exterior Shade/Blind oder ExteriorScreen
+            ! ... ist eine Shaded Construction angegeben, so gewinnt diese.
+    BlockBeamSolar,                         ! - Slat-Angle-Control (Blinds Only)
+    ,                                       ! - Slat-Angle-Schedule
+    ,                                       ! - SetPoint2 (W/m2) # selten gebraucht
+    ,       ! - Daylighting Controls Object Name # glare/illuminance Steuerung fuer Zone
+    Group,  ! - Multiple Surface Control Type # die nachfolgend aufgelisteten Fenster werden wie folgt gesteuert:
+            ! - # ... bei "Sequential": individuell, der Reihe nach         bei "Group": alle gemeinsam
+    win-EN_COLLECTION_1,                    ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_2,                    ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_7,                    ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_10,                   ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_11,                   ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_15,                   ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_19,                   ! - Fenestration Surface <n> Name
+    win-EN_COLLECTION_32;                   ! - Fenestration Surface <n> Name
+            ! - ... beliebig oft wiederholbar - gibt FenestrationSurface:Detailed/Window/GlazedDoor
+            ! - an, das/die von hier gesteuert sind. Wichtig! Letzten Eintrag mit ";" beenden!!
+
+! - ### Verschattung
+WindowMaterial:Blind,
+    sonnenschutz,           ! - Name => "Shading Material" in Construction oder WindowShadingControl
+    HORIZONTAL,             ! - Orientation
+    0.062,                  ! - Slat-Width      (m) Lamellen-Breite
+    0.042,                  ! - Slat-Separation (m) Lamellen-Abstand (Mitte-zu-Mitte)
+    0.001,                  ! - Slat-Thickness  (m) Lamellen-Dicke
+    10.0,                   ! - Slat-Angle    (deg) Standard-Winkel wenn nicht gesteuert
+            ! - 0 => geschlossen, 90 => Aussenseite der Lamellen ist oben,
+            ! - 180 => Aussenseite der Lamellen innen  Grenzen 0+phi bis 180-phi
+            ! - wobei phi der Winkel ist der durch die Dicke der Lamellen eintritt.
+    1.0,                    ! - Slat-Conductivity (W/(m*K)) Waermeleitfaehigkeit
+    0.0,                        ! - Direct Solar Transmittance
+    0.800000011920929,          ! - Direct Solar Reflectance(Frontside)
+    0.800000011920929,          ! - Direct Solar Reflectance(Backside)
+    0.0,                        ! - Diffuse Solar Transmittance
+    0.800000011920929,          ! - Diffuse Solar Reflectance(Frontside)
+    0.800000011920929,          ! - Diffuse Solar Reflectance(Backside)
+    0.0,                        ! - Direct Visible Transmittance
+    0.699999988079071,          ! - Direct Visible Reflectance(Frontside)
+    0.699999988079071,          ! - Direct Visible Reflectance(Backside)
+    0.0,                        ! - Diffuse Visible Transmittance
+    0.699999988079071,          ! - Diffuse Visible Reflectance(Frontside)
+    0.699999988079071,          ! - Diffuse Visible Reflectance(Backside)
+    0.0,                        ! - Thermal Transmittance ### Infrarot ...
+    0.8999999761581421,         ! - Thermal Reflectance(Frontside)
+    0.8999999761581421,         ! - Thermal Reflectance(Backside)
+    0.0775,                 ! - Blind2Glass-distance (m)
+            ! - der Abstand von der Mitte der Lamellen zum Glas (mindestens 0.5*"Slat-Width")
+        ! - Diese Multiplier sind der Abstand zum Rahmen in Abhaengigkeit vom Abstand zum Fenster...
+    0.0,                        ! - Opening Multiplier.T
+    0.0,                        ! - Opening Multiplier.B
+    0.5,                        ! - Opening Multiplier.L
+    0.5,                        ! - Opening Multiplier.R
+    0.0,                    ! - Slat-Angle-Minimium => grenze fuer Lamellen-Winkel-Steuerung
+    180.0;                  ! - Slat-Angle-Maximum  => grenze fuer Lamellen-Winkel-Steuerung
+
+
+
+! - ### Verschattete Verglasung (Wird von WindowShadingControl verwendet).
+! - #   (FenestrationSurface:Detailed braucht die unverschattete Konstruktion)
+! - Angegeben wird in Schichten, beginnend von der Aussenseite
+! - Bei BetweenGlass wird der zweitletzte Layer (innere gasschicht) durch
+! - ... die Verschattung ersetzt...
+Construction,
+    Verglasung__verschattet,                ! - Name
+    sonnenschutz,                           ! - Shading Material => Verschattung
+    Verglasung-layer-0,                     ! - Outside layer
+    Verglasung-layer-1,                     ! - Layer 1
+    Verglasung-layer-2,                     ! - Layer 2
+    Verglasung-layer-3,                     ! - Layer 3
+    Verglasung-layer-4;                     ! - Layer 4
+
+! - ### Normale Verglasung z.B. fuer FenestrationSurface:Detailed
+Construction,
+    Verglasung,                             ! - Name
+    Verglasung-layer-0,                     ! - Outside layer
+    Verglasung-layer-1,                     ! - Layer 1
+    Verglasung-layer-2,                     ! - Layer 2
+    Verglasung-layer-3,                     ! - Layer 3
+    Verglasung-layer-4;                     ! - Layer 4
+
+
+
+
+
+
+! ### Beispiele:
+! Vorhang / Stoff-Sonnenschutz
+WindowMaterial:Shade,
+  DRAPES - CLOSE WEAVE MEDIUM,  !- Name
+  0.05,                         !- Solar transmittance
+  0.3000000,                    !- Solar Reflectance
+  .05,                          !- Visible transmittance
+  0.3000000,                    !- Visible reflectance
+  0.9000000,                    !- Infrared Hemispherical Emissivity
+  0.0,                          !- Infrared Transmittance
+  0.003,                        !- Thickness {m}
+  0.1,                          !- Conductivity {W/m-K}
+  0.050,                        !- Shade to glass distance {m}
+  1.0,                          !- Top opening multiplier
+  1.0,                          !- Bottom opening multiplier
+  0.0,                          !- Left-side opening multiplier
+  0.0,                          !- Right-side opening multiplier
+  0.0;                          !- Air flow permeability
+
+! - Raffstore / Lamellen-Jalousie (ein Rolladen lasst sich mit Slat-angle=0
+! - ... und Slat-separation > slat-width darstellen, ohne Lamellensteuerung)
+WindowMaterial:Blind,
+   White Painted Metal Blind,   !- Name
+   HORIZONTAL,                  !- Slat orientation
+   0.025   ,                    !- Slat width (m)
+   0.01875 ,                    !- Slat separation (m)
+   0.001   ,                    !- Slat thickness (m)
+   45.0    ,                    !- Slat angle (deg)
+   44.9    ,                    !- Slat conductivity (W/m-K)
+   0.0     ,                    !- Slat beam solar transmittance
+   0.8     ,                    !- Front Side Slat beam solar reflectance
+   0.8     ,                    !- Back Side Slat beam solar reflectance
+   0.0     ,                    !- Slat diffuse solar transmittance
+   0.8     ,                    !- Front Side Slat diffuse solar reflectance
+   0.8     ,                    !- Back Side Slat diffuse solar reflectance
+   0.0     ,                    !- Slat beam visible transmittance
+   0.7     ,                    !- Front Side Slat beam visible reflectance
+   0.7     ,                    !- Back Side Slat beam visible reflectance
+   0.0     ,                    !- Slat diffuse visible transmittance
+   0.7     ,                    !- Front Side Slat diffuse visible reflectance
+   0.7     ,                    !- Back Side Slat diffuse visible reflectance
+   0.0     ,                    !- Slat Infrared hemispherical transmittance
+   0.9     ,                    !- Front Side Slat Infrared hemispherical emissivity
+   0.9     ,                    !- Back Side Slat Infrared hemispherical emissivity
+   0.050   ,                    !- Blind-to-glass distance
+   0.0     ,                    !- Blind top opening multiplier
+   0.0     ,                    !- Blind bottom opening multiplier
+   0.5     ,                    !- Blind left-side opening multiplier
+   0.5     ,                    !- Blind right-side opening multiplier
+   ,                            !- Minimum slat angle (deg)
+   ;                            !- Maximum slat angle (deg)
