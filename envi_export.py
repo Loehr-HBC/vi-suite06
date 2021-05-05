@@ -104,6 +104,7 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
 #                                em.sg_write(en_idf, mat.name+'_sg', emnode.envi_sg_uv, emnode.envi_sg_shgc, emnode.envi_sg_vt)
 #                                ec.con_write(en_idf, emnode.envi_con_type, mat.name, mat.name+'_sg', mat.name, [mat.name+'_sg'])
 #                            else:
+                            en_idf.write("! ### Verglasung Marker (HBC)\n")
                             en_idf.write(emnode.ep_write(mat.name))
                         else:
                             if emnode.envi_con_type not in ('None', 'Shading', 'Aperture'):

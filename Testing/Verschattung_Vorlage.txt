@@ -12,6 +12,76 @@
 !       /group-surface-construction-elements.html
 !       #windowmaterialshade
 !       #windowmaterialblind
+! Es muessen 2-3 Blocke erstellt werden:
+! 1. Verschattungsanlage     => "Shading Material", meist Blind oder Shade
+! 2. Verschatteter Aufbau    => fuer einfache Verschattung optional
+! 3. Verschattungs-Steuerung => nimmt entweder Verschattungsanlage
+!           oder verschatteten Aufbau entgegen.
+! Die genaue Reihenfolge ist egal, aber diese Blocke muessen in der
+!   Naehe des unverschatteten Fenster-Aufbaus liegen
+
+
+! - ### Verschattung
+WindowMaterial:Blind,
+    sonnenschutz,           ! - Name => "Shading Material" in Construction oder WindowShadingControl
+    HORIZONTAL,             ! - Orientation
+    0.062,                  ! - Slat-Width      (m) Lamellen-Breite
+    0.042,                  ! - Slat-Separation (m) Lamellen-Abstand (Mitte-zu-Mitte)
+    0.001,                  ! - Slat-Thickness  (m) Lamellen-Dicke
+    10.0,                   ! - Slat-Angle    (deg) Standard-Winkel wenn nicht gesteuert
+            ! - 0 => geschlossen, 90 => Aussenseite der Lamellen ist oben,
+            ! - 180 => Aussenseite der Lamellen innen  Grenzen 0+phi bis 180-phi
+            ! - wobei phi der Winkel ist der durch die Dicke der Lamellen eintritt.
+    1.0,                    ! - Slat-Conductivity (W/(m*K)) Waermeleitfaehigkeit
+    0.0,                        ! - Direct Solar Transmittance
+    0.800000011920929,          ! - Direct Solar Reflectance(Frontside)
+    0.800000011920929,          ! - Direct Solar Reflectance(Backside)
+    0.0,                        ! - Diffuse Solar Transmittance
+    0.800000011920929,          ! - Diffuse Solar Reflectance(Frontside)
+    0.800000011920929,          ! - Diffuse Solar Reflectance(Backside)
+    0.0,                        ! - Direct Visible Transmittance
+    0.699999988079071,          ! - Direct Visible Reflectance(Frontside)
+    0.699999988079071,          ! - Direct Visible Reflectance(Backside)
+    0.0,                        ! - Diffuse Visible Transmittance
+    0.699999988079071,          ! - Diffuse Visible Reflectance(Frontside)
+    0.699999988079071,          ! - Diffuse Visible Reflectance(Backside)
+    0.0,                        ! - Thermal Transmittance ### Infrarot ...
+    0.8999999761581421,         ! - Thermal Reflectance(Frontside)
+    0.8999999761581421,         ! - Thermal Reflectance(Backside)
+    0.0775,                 ! - Blind2Glass-distance (m)
+            ! - der Abstand von der Mitte der Lamellen zum Glas (mindestens 0.5*"Slat-Width")
+        ! - Diese Multiplier sind der Abstand zum Rahmen in Abhaengigkeit vom Abstand zum Fenster...
+    0.0,                        ! - Opening Multiplier.T
+    0.0,                        ! - Opening Multiplier.B
+    0.5,                        ! - Opening Multiplier.L
+    0.5,                        ! - Opening Multiplier.R
+    0.0,                    ! - Slat-Angle-Minimium => grenze fuer Lamellen-Winkel-Steuerung
+    180.0;                  ! - Slat-Angle-Maximum  => grenze fuer Lamellen-Winkel-Steuerung
+
+
+! - ### Verschattete Verglasung (Wird von WindowShadingControl verwendet).
+! - #   (FenestrationSurface:Detailed braucht die unverschattete Konstruktion)
+! - Angegeben wird in Schichten, beginnend von der Aussenseite
+! - Bei BetweenGlass wird der zweitletzte Layer (innere gasschicht) durch
+! - ... die Verschattung ersetzt...
+Construction,
+    Verglasung__verschattet,                ! - Name
+    sonnenschutz,                           ! - Shading Material => Verschattung
+    Verglasung-layer-0,                     ! - Outside layer
+    Verglasung-layer-1,                     ! - Layer 1
+    Verglasung-layer-2,                     ! - Layer 2
+    Verglasung-layer-3,                     ! - Layer 3
+    Verglasung-layer-4;                     ! - Layer 4
+
+! - ### Normale Verglasung z.B. fuer FenestrationSurface:Detailed
+Construction,
+    Verglasung,                             ! - Name
+    Verglasung-layer-0,                     ! - Outside layer
+    Verglasung-layer-1,                     ! - Layer 1
+    Verglasung-layer-2,                     ! - Layer 2
+    Verglasung-layer-3,                     ! - Layer 3
+    Verglasung-layer-4;                     ! - Layer 4
+
 
 ! - ### Verschattungssteuerung
 WindowShadingControl,
@@ -52,67 +122,9 @@ WindowShadingControl,
             ! - ... beliebig oft wiederholbar - gibt FenestrationSurface:Detailed/Window/GlazedDoor
             ! - an, das/die von hier gesteuert sind. Wichtig! Letzten Eintrag mit ";" beenden!!
 
-! - ### Verschattung
-WindowMaterial:Blind,
-    sonnenschutz,           ! - Name => "Shading Material" in Construction oder WindowShadingControl
-    HORIZONTAL,             ! - Orientation
-    0.062,                  ! - Slat-Width      (m) Lamellen-Breite
-    0.042,                  ! - Slat-Separation (m) Lamellen-Abstand (Mitte-zu-Mitte)
-    0.001,                  ! - Slat-Thickness  (m) Lamellen-Dicke
-    10.0,                   ! - Slat-Angle    (deg) Standard-Winkel wenn nicht gesteuert
-            ! - 0 => geschlossen, 90 => Aussenseite der Lamellen ist oben,
-            ! - 180 => Aussenseite der Lamellen innen  Grenzen 0+phi bis 180-phi
-            ! - wobei phi der Winkel ist der durch die Dicke der Lamellen eintritt.
-    1.0,                    ! - Slat-Conductivity (W/(m*K)) Waermeleitfaehigkeit
-    0.0,                        ! - Direct Solar Transmittance
-    0.800000011920929,          ! - Direct Solar Reflectance(Frontside)
-    0.800000011920929,          ! - Direct Solar Reflectance(Backside)
-    0.0,                        ! - Diffuse Solar Transmittance
-    0.800000011920929,          ! - Diffuse Solar Reflectance(Frontside)
-    0.800000011920929,          ! - Diffuse Solar Reflectance(Backside)
-    0.0,                        ! - Direct Visible Transmittance
-    0.699999988079071,          ! - Direct Visible Reflectance(Frontside)
-    0.699999988079071,          ! - Direct Visible Reflectance(Backside)
-    0.0,                        ! - Diffuse Visible Transmittance
-    0.699999988079071,          ! - Diffuse Visible Reflectance(Frontside)
-    0.699999988079071,          ! - Diffuse Visible Reflectance(Backside)
-    0.0,                        ! - Thermal Transmittance ### Infrarot ...
-    0.8999999761581421,         ! - Thermal Reflectance(Frontside)
-    0.8999999761581421,         ! - Thermal Reflectance(Backside)
-    0.0775,                 ! - Blind2Glass-distance (m)
-            ! - der Abstand von der Mitte der Lamellen zum Glas (mindestens 0.5*"Slat-Width")
-        ! - Diese Multiplier sind der Abstand zum Rahmen in Abhaengigkeit vom Abstand zum Fenster...
-    0.0,                        ! - Opening Multiplier.T
-    0.0,                        ! - Opening Multiplier.B
-    0.5,                        ! - Opening Multiplier.L
-    0.5,                        ! - Opening Multiplier.R
-    0.0,                    ! - Slat-Angle-Minimium => grenze fuer Lamellen-Winkel-Steuerung
-    180.0;                  ! - Slat-Angle-Maximum  => grenze fuer Lamellen-Winkel-Steuerung
 
 
 
-! - ### Verschattete Verglasung (Wird von WindowShadingControl verwendet).
-! - #   (FenestrationSurface:Detailed braucht die unverschattete Konstruktion)
-! - Angegeben wird in Schichten, beginnend von der Aussenseite
-! - Bei BetweenGlass wird der zweitletzte Layer (innere gasschicht) durch
-! - ... die Verschattung ersetzt...
-Construction,
-    Verglasung__verschattet,                ! - Name
-    sonnenschutz,                           ! - Shading Material => Verschattung
-    Verglasung-layer-0,                     ! - Outside layer
-    Verglasung-layer-1,                     ! - Layer 1
-    Verglasung-layer-2,                     ! - Layer 2
-    Verglasung-layer-3,                     ! - Layer 3
-    Verglasung-layer-4;                     ! - Layer 4
-
-! - ### Normale Verglasung z.B. fuer FenestrationSurface:Detailed
-Construction,
-    Verglasung,                             ! - Name
-    Verglasung-layer-0,                     ! - Outside layer
-    Verglasung-layer-1,                     ! - Layer 1
-    Verglasung-layer-2,                     ! - Layer 2
-    Verglasung-layer-3,                     ! - Layer 3
-    Verglasung-layer-4;                     ! - Layer 4
 
 
 
