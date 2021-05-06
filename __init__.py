@@ -71,10 +71,12 @@ else:
             os.add_dll_directory(os.path.join(addonpath, 'Python', sys.platform))
 
     if sys.platform in ('linux', 'darwin'):
-        for fn in ('cnt', 'epw2wea', 'evalglare', 'falsecolor', 'genBSDF', 'gendaylit', 'gendaymtx', 'gensky',
-                    'getbbox', 'getinfo', 'ies2rad', 'mkpmap', 'obj2mesh', 'oconv', 'pcomb', 'pcompos', 'pcond',
-                    'pfilt', 'pkgBSDF', 'pmapdump', 'psign', 'rad2mgf', 'rcalc', 'rcontrib', 'rfluxmtx', 'rmtxop',
-                    'rpict', 'rpiece', 'rtrace', 'rttree_reduce', 'rvu', 'vwrays', 'wrapBSDF', 'xform'):            
+        for fn in ('cnt', 'epw2wea', 'evalglare', 'falsecolor', 'genBSDF',
+                   'gendaylit', 'gendaymtx', 'gensky', 'getbbox', 'getinfo',
+                   'ies2rad', 'mkpmap', 'obj2mesh', 'oconv', 'pcomb', 'pcompos',
+                   'pcond', 'pfilt', 'pkgBSDF', 'pmapdump', 'psign', 'rad2mgf',
+                   'rcalc', 'rcontrib', 'rfluxmtx', 'rmtxop', 'rpict', 'rpiece',
+                   'rtrace', 'rttree_reduce', 'rvu', 'vwrays', 'wrapBSDF', 'xform'):
             try:
                 if not os.access(os.path.join(addonpath, 'RadFiles', sys.platform, 'bin', fn), os.X_OK):
                     os.chmod(os.path.join(addonpath, 'RadFiles', sys.platform, 'bin', fn), 0o775)
@@ -88,33 +90,46 @@ else:
             except:
                 print('{} not found'.format(fn))
          
-    from .vi_node import vinode_categories, envinode_categories, envimatnode_categories, ViNetwork, No_Loc, So_Vi_Loc 
-    from .vi_node import No_Vi_SP, No_Vi_WR, No_Vi_SVF, So_Vi_Res, No_Vi_SS
-    from .vi_node import No_Li_Geo, No_Li_Con, No_Li_Sen, So_Li_Geo, So_Li_Con, No_Text, So_Text, No_CSV
-    from .vi_node import No_Li_Im, So_Li_Im, No_Li_Gl, No_Li_Fc 
-    from .vi_node import No_Li_Sim, No_ASC_Import, No_Flo_BMesh, So_Flo_Mesh
-    from .vi_node import No_En_Net_Zone, No_En_Net_Occ, So_En_Net_Eq, So_En_Net_Inf, So_En_Net_Hvac, No_En_Net_Hvac
-    from .vi_node import No_En_Geo, So_En_Geo, EnViNetwork, EnViMatNetwork, No_En_Con, So_En_Con
-    from .vi_node import No_En_Mat_Con, No_En_Mat_Sc, No_En_Mat_Sh, No_En_Mat_ShC, No_En_Mat_Bl, No_En_Mat_Op, No_En_Mat_Tr, No_En_Mat_Gas, So_En_Mat_Ou, So_En_Mat_Op, No_En_Mat_Sched
-    from .vi_node import So_En_Net_Occ, So_En_Sched, No_En_Net_Sched, No_En_Sim, No_Vi_Chart, So_En_Res, So_En_ResU, So_En_Net_TSched, No_En_Net_Eq, No_En_Net_Inf
-    from .vi_node import No_En_Net_TC, No_En_Net_SFlow, No_En_Net_SSFlow, So_En_Net_SFlow, So_En_Net_SSFlow, So_En_Mat_PV, No_En_Mat_PV
-    from .vi_node import So_En_Mat_PVG, No_En_Mat_PVG, No_Vi_Metrics, So_En_Mat_Tr, So_En_Mat_Gas, So_En_Net_Bound, No_En_Net_ACon, No_En_Net_Ext
-    from .vi_node import No_En_Net_EMSZone, No_En_Net_Prog, No_En_Net_EMSPy, So_En_Net_Act, So_En_Net_Sense, No_Flo_Case, So_Flo_Case, No_Flo_NG, So_Flo_Con, No_Flo_Bound, No_Flo_Sim
-    from .vi_node import No_En_IF, No_En_RF, So_En_Net_WPC, No_En_Net_WPC
-    from .vi_func import iprop, bprop, eprop, fprop, sprop, fvprop, sunpath1
-    from .vi_func import lividisplay, logentry
+    from .vi_node import (
+        vinode_categories, envinode_categories, envimatnode_categories,         # Node-Categories
+        ViNetwork, EnViMatNetwork, EnViNetwork,                                 # Node-Networks
+        No_ASC_Import, No_CSV, No_En_Con, No_En_Geo, No_En_IF, No_En_Mat_Bl,    # Nodes
+        No_En_Mat_Con, No_En_Mat_Gas, No_En_Mat_Op, No_En_Mat_PV, No_En_Mat_PVG,
+        No_En_Mat_Sc, No_En_Mat_Sched, No_En_Mat_Sh, No_En_Mat_ShC, No_En_Mat_Tr,
+        No_En_Net_ACon, No_En_Net_EMSPy, No_En_Net_EMSZone, No_En_Net_Eq,
+        No_En_Net_Ext, No_En_Net_Hvac, No_En_Net_Inf, No_En_Net_Occ, No_En_Net_Prog,
+        No_En_Net_SFlow, No_En_Net_SSFlow, No_En_Net_Sched, No_En_Net_TC,
+        No_En_Net_WPC, No_En_Net_Zone, No_En_RF, No_En_Sim, No_Flo_BMesh,
+        No_Flo_Bound, No_Flo_Case, No_Flo_NG, No_Flo_Sim, No_Li_Con, No_Li_Fc,
+        No_Li_Geo, No_Li_Gl, No_Li_Im, No_Li_Sen, No_Li_Sim, No_Loc, No_Text,
+        No_Vi_Chart, No_Vi_Metrics, No_Vi_SP, No_Vi_SS, No_Vi_SVF, No_Vi_WR,
+        So_En_Con, So_En_Geo, So_En_Mat_Gas, So_En_Mat_Op, So_En_Mat_Ou,        # Sockets
+        So_En_Mat_PV, So_En_Mat_PVG, So_En_Mat_Tr, So_En_Net_Act, So_En_Net_Bound,
+        So_En_Net_Eq, So_En_Net_Hvac, So_En_Net_Inf, So_En_Net_Occ, So_En_Net_SFlow,
+        So_En_Net_SSFlow, So_En_Net_Sense, So_En_Net_TSched, So_En_Net_WPC,
+        So_En_Res, So_En_ResU, So_En_Sched, So_Flo_Case, So_Flo_Con, So_Flo_Mesh,
+        So_Li_Con, So_Li_Geo, So_Li_Im, So_Text, So_Vi_Res, So_Vi_Loc
+        )
+    from .vi_func import (iprop, bprop, eprop, fprop, sprop, fvprop,
+                          sunpath1, lividisplay, logentry)
     from .livi_func import rtpoints, lhcalcapply, udidacalcapply, basiccalcapply, radmat, retsv
     from .envi_func import enunits, enpunits, enparametric, resnameunits, aresnameunits
-    from .flovi_func import fvmat, ret_fvbp_menu, ret_fvbu_menu, ret_fvbnut_menu, ret_fvbnutilda_menu, ret_fvbk_menu, ret_fvbepsilon_menu, ret_fvbomega_menu, ret_fvbt_menu, ret_fvba_menu, ret_fvbprgh_menu, flovi_bm_update, ret_fvrad_menu
-    from .vi_operators import NODE_OT_WindRose, NODE_OT_SVF, NODE_OT_En_Con, NODE_OT_En_Sim, NODE_OT_TextUpdate
-    from .vi_operators import MAT_EnVi_Node, NODE_OT_Shadow, NODE_OT_CSV, NODE_OT_ASCImport, NODE_OT_FileSelect, NODE_OT_HdrSelect
-    from .vi_operators import NODE_OT_Li_Geo, NODE_OT_Li_Con, NODE_OT_Li_Pre, NODE_OT_Li_Sim
-    from .vi_operators import NODE_OT_Li_Im, NODE_OT_Li_Gl, NODE_OT_Li_Fc, NODE_OT_En_Geo, OBJECT_OT_VIGridify2, NODE_OT_En_UV
-    from .vi_operators import NODE_OT_Chart, NODE_OT_En_PVA, NODE_OT_En_PVS, NODE_OT_En_LayS, NODE_OT_En_ConS, TREE_OT_goto_mat, TREE_OT_goto_group
-    from .vi_operators import OBJECT_OT_Li_GBSDF, OBJECT_OT_GOct, MATERIAL_OT_Li_LBSDF, MATERIAL_OT_Li_SBSDF, MATERIAL_OT_Li_DBSDF
-    from .vi_operators import NODE_OT_Flo_Case, NODE_OT_Flo_BM, NODE_OT_Flo_NG, NODE_OT_Flo_Bound, NODE_OT_Flo_Sim
-    from .vi_display import VIEW3D_OT_WRDisplay, VIEW3D_OT_SVFDisplay, VIEW3D_OT_Li_BD, VIEW3D_OT_Li_DBSDF, VIEW3D_OT_SSDisplay, NODE_OT_SunPath
-    from .vi_display import script_update, col_update, leg_update, w_update, t_update, livires_update, e_update
+    from .flovi_func import (flovi_bm_update, fvmat, ret_fvba_menu, ret_fvbepsilon_menu,
+        ret_fvbk_menu, ret_fvbnut_menu, ret_fvbnutilda_menu, ret_fvbomega_menu,
+        ret_fvbp_menu, ret_fvbprgh_menu, ret_fvbt_menu, ret_fvbu_menu, ret_fvrad_menu)
+    from .vi_operators import (MATERIAL_OT_Li_DBSDF, MATERIAL_OT_Li_LBSDF,
+        MATERIAL_OT_Li_SBSDF, MAT_EnVi_Node, NODE_OT_ASCImport, NODE_OT_CSV,
+        NODE_OT_Chart, NODE_OT_En_Con, NODE_OT_En_ConS, NODE_OT_En_Geo,
+        NODE_OT_En_LayS, NODE_OT_En_PVA, NODE_OT_En_PVS, NODE_OT_En_Sim,
+        NODE_OT_En_UV, NODE_OT_FileSelect, NODE_OT_Flo_BM, NODE_OT_Flo_Bound,
+        NODE_OT_Flo_Case, NODE_OT_Flo_NG, NODE_OT_Flo_Sim, NODE_OT_HdrSelect,
+        NODE_OT_Li_Con, NODE_OT_Li_Fc, NODE_OT_Li_Geo, NODE_OT_Li_Gl,
+        NODE_OT_Li_Im, NODE_OT_Li_Pre, NODE_OT_Li_Sim, NODE_OT_SVF, NODE_OT_Shadow,
+        NODE_OT_TextUpdate, NODE_OT_WindRose, OBJECT_OT_GOct, OBJECT_OT_Li_GBSDF,
+        OBJECT_OT_VIGridify2, TREE_OT_goto_group, TREE_OT_goto_mat)
+    from .vi_display import (NODE_OT_SunPath, VIEW3D_OT_Li_BD, VIEW3D_OT_Li_DBSDF, # random ?
+        VIEW3D_OT_SSDisplay, VIEW3D_OT_SVFDisplay, VIEW3D_OT_WRDisplay, col_update,# display?
+        e_update, leg_update, livires_update, script_update, t_update, w_update)   # update ?
     from .vi_ui import VI_PT_3D, VI_PT_Mat, VI_PT_Ob, VI_PT_Gridify, TREE_PT_envim, TREE_PT_envin, TREE_PT_vi
     from .vi_dicts import colours
 
