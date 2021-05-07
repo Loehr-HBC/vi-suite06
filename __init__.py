@@ -35,6 +35,8 @@ if "bpy" in locals():
     imp.reload(vi_ui)
     imp.reload(vi_func)
     imp.reload(vi_node)
+    imp.reload(shading_devices)# (HBC) Must come (directly) after vi_node
+    # (shadowing the envinode_categories => less intrusive, but order-dependant)
     imp.reload(envi_mat)
 else:
     import sys, os, inspect, shlex, bpy
@@ -110,6 +112,11 @@ else:
         So_En_Res, So_En_ResU, So_En_Sched, So_Flo_Case, So_Flo_Con, So_Flo_Mesh,
         So_Li_Con, So_Li_Geo, So_Li_Im, So_Text, So_Vi_Res, So_Vi_Loc
         )
+    # (HBC) shading-devices must come (directly) after vi_node
+    #   shadowing the envinode_categories => less intrusive, but order-dependant
+    #   That's needed as shading_nodes modifies the nodetree 'EnViNetwork'.
+    from .shading_devices.shading_nodes import (envinode_categories, EnViNetwork,
+        shading_device_classes)
     from .vi_func import (iprop, bprop, eprop, fprop, sprop, fvprop,
                           sunpath1, lividisplay, logentry)
     from .livi_func import rtpoints, lhcalcapply, udidacalcapply, basiccalcapply, radmat, retsv
@@ -698,6 +705,8 @@ classes = (VIPreferences, ViNetwork, No_Loc, So_Vi_Loc, No_Vi_SP, NODE_OT_SunPat
            NODE_OT_Flo_NG, So_Flo_Con, No_Flo_Bound, NODE_OT_Flo_Bound, No_Flo_Sim,
            NODE_OT_Flo_Sim, No_En_IF, No_En_RF, So_En_Net_WPC, No_En_Net_WPC
            )
+classes += shading_device_classes # (HBC) extend classes for shading_devices
+# since noone should depend on the new classes, we can skip Custom register functions
 
 def register():
     for cl in classes:

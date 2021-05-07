@@ -23,7 +23,7 @@ class EnViNetwork(bpy.types.NodeTree):
     bl_label = 'EnVi Network'
     bl_icon = 'FORCE_WIND'
     nodetypes = {}
-    
+
     # for the shaded materials to choose in the ShadedWindow-node
     envi_shaded_materials = bpy.props.CollectionProperty(type=EnVi_Multiple)
     # update
@@ -64,7 +64,7 @@ class EnViShadeSocket(bpy.types.NodeSocket):
     bl_idname = 'EnViShadeSocket'
     bl_label = 'Shading device socket'
     bl_color = (0.0, 0.0, 0.5, 0.5)
-    
+
     @property
     def SHADE_TYPE(self):
 #        if self.is_output: return self.node.SHADE_TYPE
@@ -82,13 +82,13 @@ class EnViShadeSocket(bpy.types.NodeSocket):
             return self.links[  0].from_socket.SHADE                  # forward
         else:                                                         # ERROR-Call
             raise KeyError("NODE: {} - NO SHADE PROVIDED".format(self.node.name))
-    
+
     def draw(self, context, layout, node, text):
         if False:#self.is_linked and not self.is_output:
             if any(lk.is_valid for lk in self.links):
                 text+="({})".format(self.SHADE_TYPE)
         layout.label(text)
-    
+
     def draw_color(self, context, node):
         return (0.0, 0.0, 0.5, 1)
 ### Control-Socket
@@ -129,7 +129,7 @@ class ClampedFloatSocket(bpy.types.NodeSocket, ClampedSocket_META):
     ### This FloatVector actualy holds the data
     true_default_value = bpy.props.FloatVectorProperty(
             default = [0,0,1], update=upd)
-    
+
     def draw_color(self, context="", node=""):
         return (0.6, 0.6, 0.6, [0.5,1][self.is_linked or self.is_output])
 
@@ -142,25 +142,25 @@ class EnumSocket(bpy.types.NodeSocket):
     bl_idname = 'EnumSocket'
     bl_label = 'Enum socket'
     bl_color = (0.2, 0.2, 0.2, 0.5)
-    
+
     def is_valid(self, value=None):
         if value == None: value=self.true_default_value
         if value in self.allowed_values: return True
         if self.allowed_values == []: return True
         return False
-    
+
     @property
     def valid(self): self.is_valid(self.true_default_value)
 
     true_default_value = bpy.props.StringProperty()
     # If __allowed isnt empty, only values in __allowed can be valid.
     __allowed = []
-    
+
     @property
     def default_value( self):
         nep = self.node.ENUM.get(self.name,"False")
         tdv = getattr(self.node,nep,self.true_default_value)
-        
+
         if self.is_output==True: return tdv
         if self.is_linked==True:
             for l in self.links: # using links[0] would spam the console
@@ -191,7 +191,7 @@ class EnumSocket(bpy.types.NodeSocket):
             if allowed!=[]: self.__allowed = allowed
         if self.__allowed!=[] and self.true_default_value not in self.__allowed:
             self.true_default_value=self.__allowed[0]
-    
+
     def draw(self, context, layout, node, text):
         #self.advanced_draw(context, layout, node, text); return
         if self.is_linked: layout.label(text)
@@ -199,7 +199,7 @@ class EnumSocket(bpy.types.NodeSocket):
             propname = node.ENUM.get(self.name,"")
             if propname!="":
                 layout.prop(node, propname)
-    
+
     def advanced_draw(self, context, layout, node, text):
         enum = node.ENUM.get(self.name, "")
         if self.is_linked:
@@ -222,7 +222,7 @@ class EnumSocket(bpy.types.NodeSocket):
             layout.alert=(self.__allowed!=[] and
                           self.true_default_value not in self.__allowed)
             layout.prop( node, enum)
-    
+
     def draw_color(self, context, node):
         return (0.2, 0.2, 0.2, [0.5,1][self.is_linked])
 
@@ -236,7 +236,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     bl_idname = 'EnViShadDevNode'
     bl_label  = 'Shading Device'
     bl_icon   = 'SOUND'
-    
+
     ### update-functions. They MUST stay on top
     def update(self):
         if not self.initialised: return
@@ -254,18 +254,18 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         enum_hooks = getattr(self, "ENUM_HOOKS",{})
         hooks = enum_hooks.get(skt.name, [])
         for hook in hooks: hook(self, context)
-    
+
     def upd_layout(self, context=""):
         """Show/hide sockets depending on layout choice.
         Be aware that changes made remain and are applied if applicable."""
-        
+
         ### hide all sockets: # the very basic ones will be unhid at the end
         for skt in self.inputs: skt.hide = True
-        
+
         if self.SHADE_TYPE=="Blind":  self.upd_layout_B()
         if self.SHADE_TYPE=="Shade":  self.upd_layout_S()
         if self.SHADE_TYPE=="Screen": self.upd_layout_Sc()
-        
+
         ### unhide the very basic sockets:
         for skt in self.inputs:
             if skt.name in [s[1] for s in self.skts__basic]:
@@ -273,11 +273,11 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         ### unhide the outputs:
         # as there are no SHADE_TYPE-specific outputs, outputs wont be hidden.
         for skt in self.outputs: skt.hide = False
-    
+
     def upd_layout_B( self):
         """Show/hide sockets depending on layout choice.
         Be aware that changes made remain and are applied if applicable."""
-        
+
         ### rename-block { # rename to match definition-name
         if "Thickness (mm)" not in self.inputs:
             skt = [skt for skt in self.inputs
@@ -288,18 +288,18 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                    if skt.name.endswith("Spacing (mm)")][0]
             skt.name = "Spacing (mm)"
         ### }
-        
+
         ## only sockets that concern me
         inputs  = [ skt for skt in self.skts_B_ALL
                     if skt[1] in self.inputs.keys() ]
         outputs = [ skt for skt in self.skts_B_ALL
                     if skt[1] in self.outputs.keys()]
-        
+
         hideable = [skt for skt in inputs + outputs]
-        
+
         # alle int<0 = verbergen ihre aktionsgruppe, die anderen zeigen nur sie
         hide = int(self.layout)<0
-        
+
         actOn= [skt for skt in hideable
                 if [skt in self.skts__SBSc,                # 0 # Shared
                     True,                                  # 1 # All
@@ -310,10 +310,10 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                     skt in self.skts__refl,                # 6 # Reflectance
                     skt in self.skts__oMod                 # 7 # OpeningModifier
                     ][abs(int(self.layout))] ]
-        
+
         for skt in hideable: self.inputs[skt[1]].hide = not hide
         for skt in    actOn: self.inputs[skt[1]].hide = hide
-        
+
         ### rename-block { # rename to display precise name
         self.inputs["Thickness (mm)"].name = "Slat-Thickness (mm)"
         self.inputs[  "Spacing (mm)"].name = "Slat-Spacing (mm)"
@@ -321,25 +321,25 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     def upd_layout_S( self):
         """Show/hide sockets depending on layout choice.
         Be aware that changes made remain and are applied if applicable."""
-        
+
         ### rename-block { # rename to match definition-name
         if "Thickness (mm)" not in self.inputs:
             skt = [skt for skt in self.inputs
                    if skt.name.endswith("Thickness (mm)")][0]
             skt.name = "Thickness (mm)"
         ### }
-        
+
         ## only sockets that concern me
         inputs  = [ skt for skt in self.skts_S_ALL
                     if skt[1] in self.inputs.keys() ]
         outputs = [ skt for skt in self.skts_S_ALL
                     if skt[1] in self.outputs.keys()]
-        
+
         hideable = [skt for skt in inputs + outputs]
-        
+
         # alle int<0 verbergen ihre aktionsgruppe, die anderen zeigen nur sie
         hide = int(self.layout)<0
-        
+
         actOn= [skt for skt in hideable
                 if [skt in self.skts__SBSc,                # 0 # Shared
                     True,                                  # 1 # All
@@ -350,17 +350,17 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                     skt in self.skts__refl,                # 6 # Reflectance
                     skt in self.skts__oMod                 # 7 # OpeningModifier
                     ][abs(int(self.layout))] ]
-        
+
         for skt in hideable: self.inputs[skt[1]].hide = not hide
         for skt in    actOn: self.inputs[skt[1]].hide = hide
-        
+
         ### rename-block { # rename to display precise name
         self.inputs["Thickness (mm)"].name = "Shade-Thickness (mm)"
         ### }
     def upd_layout_Sc(self):
         """Show/hide sockets depending on layout choice.
         Be aware that changes made remain and are applied if applicable."""
-        
+
         ### rename-block { # rename to match definition-name
         if "Thickness (mm)" not in self.inputs:
             skt = [skt for skt in self.inputs
@@ -371,18 +371,18 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                    if skt.name.endswith("Spacing (mm)")][0]
             skt.name = "Spacing (mm)"
         ### }
-        
+
         ## only sockets that concern me
         inputs  = [ skt for skt in self.skts_Sc_ALL
                     if skt[1] in self.inputs.keys() ]
         outputs = [ skt for skt in self.skts_Sc_ALL
                     if skt[1] in self.outputs.keys()]
-        
+
         hideable = [skt for skt in inputs + outputs]
-        
+
         # alle str(int<0) verbergen ihre aktionsgruppe, die anderen zeigen nur sie
         hide = int(self.layout)<0
-        
+
         actOn= [skt for skt in hideable
                 if [skt in self.skts__SBSc,                # 0 # Shared
                     True,                                  # 1 # All
@@ -393,15 +393,15 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                     skt in self.skts__refl,                # 6 # Reflectance
                     skt in self.skts__oMod                 # 7 # OpeningModifier
                     ][abs(int(self.layout))] ]
-        
+
         for skt in hideable: self.inputs[skt[1]].hide = not hide
         for skt in    actOn: self.inputs[skt[1]].hide = hide
-        
+
         ### rename-block { # rename to display precise name
         self.inputs["Thickness (mm)"].name = "Wire-Thickness (mm)"
         self.inputs[  "Spacing (mm)"].name = "Wire-Spacing (mm)"
         ### }
-    
+
     def upd_shadeType(self, context=""): # general adjustments
         """Applies general adjustments, then calls individual adjustments."""
         SHADE_TYPE = self.SHADE_TYPE
@@ -418,7 +418,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         st = ["Blind","Shade","Screen"]
         i  = st.index(self.SHADE_TYPE)
         self.name=self.name.replace(st[i-1],st[i]).replace(st[i-2],st[i])
-    
+
     ### PROPS ### MUST stay below their update-functions.
     #             otherwise updates will raise errors.
     ## for the update-function 'update'
@@ -456,7 +456,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         ("6",  "Reflectance",    "only show sockets that define reflectivity" ),
         ("7",  "Opening Multiplier",
          "only show sockets that define opening multipliers"                  ),
-        
+
         ("-3","No Diffuse",      "only hide sockets that define diffuse"      ),
         ("-4","No Direkt/Beam",  "only hide sockets that define direct/beam"  ),
         ("-5","No Transmittance","only hide sockets that define transmittance"),
@@ -473,7 +473,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
          "only show sockets that define opening multipliers"                  ),
         ("-7","No Opening Multiplier",
          "only hide sockets that define opening multipliers"                  )]
-    
+
     layout_enum_B = bpy.props.EnumProperty(name  = "Layout", default = "1",
                                            items = layout_items + layout_items_B,
                                            update= upd_layout)
@@ -483,7 +483,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     layout_enum_Sc= bpy.props.EnumProperty(name  = "Layout", default = "1",
                                            items = layout_items + layout_items_Sc,
                                            update= upd_layout)
-    
+
     ### EnumSocketProps
     ## This dict contains the names of each EnumSocket
     ## and their corresponding EnumProperties in this node
@@ -496,7 +496,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     ## They will be called by upd_enumSocket.
     ## WARNING: no check against recursion!
     ENUM_HOOKS = {"Shade Type":[upd_layout,upd_shadeType]}
-    
+
     # IMPORTANT: Do NOT implement "ComplexShade" into this Node.
     #            Complex Shades are ONLY for use with "ComplexFenestration"
     shade_type = bpy.props.EnumProperty(name = "Shade Type", default = "Blind",
@@ -504,7 +504,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 ("Shade",   "Shade",    "Shades of cloth"),
                 ("Screen",  "Screen",   "Insect Screen"  )],
         update  =upd_enumSocket)
-    
+
     AngOfRes = bpy.props.EnumProperty(name  = "Output Map", default = "0",
         items = [("0","No Map", "Do not create a map"),
                  ("1", "1 deg", "Use 1 degree as angular resolution"),
@@ -519,12 +519,12 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                  ("ModelAsDiffuse",    "Model as diffuse",       "")],
         description="Method of accounting for light that is reflected trough the screen",
         default = "ModelAsDiffuse", update = upd_enumSocket)
-    
+
     slat_orientation = bpy.props.EnumProperty( # slat orientation
         items =[("HORIZONTAL","HORIZONTAL","Slats run horizontal.(Standard)"),
                 ("VERTICAL",  "VERTICAL",  "Slats run vertically."          )],
         name = "Orientation", default = "HORIZONTAL", update = upd_enumSocket)
-    
+
     ### SOCKETS - declaration for use with the setUpSockets-utility
         # entries are of this format of format
         # [ type, name [, identifier [, default(-list)]] ]
@@ -545,7 +545,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         ("ClampedFloatSocket","Opening Multiplier Left",  "", 0.5),
         ("ClampedFloatSocket","Opening Multiplier Right", "", 0.5)]
     skts__SBSc = skts__basic + skts__difRefl + skts__oMod
-    
+
     skts__SB  = [ # sockets shared by Shades and Blinds
         ("ClampedFloatSocket","Diffuse Solar Transmittance"    ),
         ("ClampedFloatSocket","Diffuse Visible Transmittance"  ),
@@ -561,14 +561,14 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     skts__B = [ ("EnumSocket", "Orientation"),
     ("ClampedFloatSocket","Slat-Width (mm)", "", [  25, 0.1, 1000]),
     ("ClampedFloatSocket","Slat-Angle (deg)","", [45.0, 0.0,  180]),
-    
+
     ("ClampedFloatSocket","Direct Solar Transmittance"        ),
     ("ClampedFloatSocket","Direct Visible Transmittance"      ),
-    
+
     ("ClampedFloatSocket","Direct Solar Reflectance",  "", 0.8),
     ("ClampedFloatSocket","Direct Visible Reflectance","", 0.7),
     ("ClampedFloatSocket","Thermal Reflectance",       "", 0.9),
-    
+
     ("ClampedFloatSocket","Direct Solar Reflectance(Backside)",   "", 0.8),
     ("ClampedFloatSocket","Direct Visible Reflectance(Backside)", "", 0.7),
     ("ClampedFloatSocket","Diffuse Solar Reflectance(Backside)",   "", 0.8),
@@ -580,18 +580,18 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     skts_S_ALL  = skts__S  + skts__SSc + skts__SB  + skts__SBSc
     skts_B_ALL  = skts__B  + skts__BSc + skts__SB  + skts__SBSc
     skts_Sc_ALL = skts__Sc + skts__BSc + skts__SSc + skts__SBSc
-    
+
     skts__def = skts__SBSc
-    
+
     skts__ALL   = skts__basic[:2] + skts__BSc + skts__B[1:3] + skts__S
     skts__ALL  += skts__basic[2:] + [skts__B[0]] + skts__Sc  + skts__oMod
     skts__ALL  += skts__B[3:5]    + skts__SB     + skts__SSc + skts__B[5:7]
     skts__ALL  += skts__difRefl   + skts__B[7: ]
-    
+
     skts__trans = [skt for skt in skts__ALL if "Transmittance" in skt[1]]
     skts__refl  = [skt for skt in skts__ALL if "Reflectance"   in skt[1]]
-    
-    
+
+
     ### INIT
     ### WICHTIG: init, nicht __init__. Sonst kein context
     def init(self, context):
@@ -600,11 +600,11 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         # request the drawing of and access to minimum and maximium value
         self.inputs["Slat-Angle (deg)"].valueOnly=False
         self.upd_layout() # force layout-update
-    
+
     def export(self):
         SHADE_TYPE = self.SHADE_TYPE
         RET  = [ ("Type", SHADE_TYPE), ("Name", self.NAME)]
-        
+
         if SHADE_TYPE not in ["Blind","Shade","Screen"]:
             raise ValueError("""ShadeType not in provided ShadeType-Values
             expected: {}
@@ -618,30 +618,30 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     def export_Sc(self):
         diameter= self.inputs["Wire-Thickness (mm)"].default_value
         spacing = self.inputs["Wire-Spacing (mm)"  ].default_value
-        
+
         if spacing<=diameter: spacing = 1.5*diameter
-        
+
         ALL = [
             ("Reflected Beam Transmittance Accounting Method",
                 self.inputs["Accounting Method"].default_value),
-            
+
             ("SolarDiff-Refl.F.", self.inputs[
                 "Diffuse Solar Reflectance"].default_value),
             ("VisibDiff-Refl.F.", self.inputs[
                 "Diffuse Visible Reflectance"].default_value),
-            
+
             ("Thermal Emissivity", self.inputs["Thermal Emissivity"].default_value),
-            
+
             ("Conductivity (W/(m*K))", self.inputs[
                 "Conductivity (W/(m*K))"].default_value),
-            
+
             ("Wire-Spacing (m)", spacing/1000),
             ("Wire-Thickness (m)", self.inputs[
                 "Wire-Thickness (mm)"].default_value/1000),
-            
+
             ("Screen2Glass-distance (m)", self.inputs[
                 "Distance to glass (mm)"].default_value/1000),
-            
+
             ("Opening Multiplier.T", self.inputs[
                 "Opening Multiplier Top"   ].default_value),
             ("Opening Multiplier.B", self.inputs[
@@ -650,7 +650,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Opening Multiplier Left"  ].default_value),
             ("Opening Multiplier.R", self.inputs[
                 "Opening Multiplier Right" ].default_value),
-            
+
             ("Angle of Resolution for Output Map (deg)", self.inputs[
                 "Angle of Resolution"].default_value),
             ]
@@ -658,7 +658,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
     def export_B(self):
         ALL = [
             ("Orientation", self.inputs["Orientation"].default_value),
-            
+
             ("Slat-Width", self.inputs["Slat-Width (mm)"].default_value/1000),
             ("Slat-Separation (m)", self.inputs[
                 "Slat-Spacing (mm)"].default_value/1000),
@@ -668,7 +668,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Slat-Angle (deg)"].default_value),
             ("Slat-Conductivity (W/(m*K))", self.inputs[
                 "Conductivity (W/(m*K))"].default_value),
-            
+
             ("Direct Solar Transmittance", self.inputs[
                 "Direct Solar Transmittance"].default_value),
             ("Direct Solar Reflectance(Frontside)", self.inputs[
@@ -689,21 +689,21 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Direct Visible Reflectance"].default_value),
             ("Direct Visible Reflectance(Backside)", self.inputs[
                 "Direct Visible Reflectance(Backside)"].default_value),
-            
+
             ("Diffuse Visible Transmittance", self.inputs[
                 "Diffuse Visible Transmittance"].default_value),
             ("Diffuse Visible Reflectance(Frontside)", self.inputs[
                 "Diffuse Visible Reflectance"].default_value),
             ("Diffuse Visible Reflectance(Backside)", self.inputs[
                 "Diffuse Visible Reflectance(Backside)"].default_value),
-            
+
             ("Thermal Transmittance",   self.inputs[
                 "Thermal Transmittance"].default_value),
             ("Thermal Reflectance(Frontside)",   self.inputs[
                 "Thermal Reflectance"].default_value),
             ("Thermal Reflectance(Backside)",   self.inputs[
                 "Thermal Reflectance(Backside)"].default_value),
-            
+
             ("Blind2Glass-distance (m)", self.inputs[
                 "Distance to glass (mm)"].default_value/1000),
             ("Opening Multiplier.T", self.inputs[
@@ -714,7 +714,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Opening Multiplier Left"  ].default_value),
             ("Opening Multiplier.R", self.inputs[
                 "Opening Multiplier Right" ].default_value),
-            
+
             ("Slat-Angle-Minimium", self.inputs["Slat-Angle (deg)"].min_value),
             ("Slat-Angle-Maximum",  self.inputs["Slat-Angle (deg)"].max_value),
             ]
@@ -725,7 +725,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Diffuse Solar Transmittance"].default_value),
             ("SolarDiff-Refl.F.", self.inputs[
                 "Diffuse Solar Reflectance"].default_value),
-            
+
             ("VisibDiff-Transm.", self.inputs[
                 "Diffuse Visible Transmittance"].default_value),
             ("VisibDiff-Refl.F.", self.inputs[
@@ -734,15 +734,15 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Thermal Emissivity"].default_value),
             ("Thermal-Transm.",   self.inputs[
                 "Thermal Transmittance"].default_value),
-            
+
             ("Thickness (m)", self.inputs[
                 "Shade-Thickness (mm)"].default_value/1000),
             ("Conductivity (W/(m*K))", self.inputs[
                 "Conductivity (W/(m*K))"].default_value),
-            
+
             ("Shade2Glass-distance (m)", self.inputs[
                 "Distance to glass (mm)"].default_value/1000),
-            
+
             ("Opening Multiplier.T", self.inputs[
                 "Opening Multiplier Top"   ].default_value),
             ("Opening Multiplier.B", self.inputs[
@@ -751,23 +751,23 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                 "Opening Multiplier Left"  ].default_value),
             ("Opening Multiplier.R", self.inputs[
                 "Opening Multiplier Right" ].default_value),
-            
+
             ("AirFlow-Permeability", self.inputs[
                 "AirFlow-Permeability"].default_value)
             ]
         return ALL
-    
+
     def draw_buttons(self, context, layout):       # Darstellung
         ERRS = [] # errortracking for display on node.
         SHADE_TYPE = self.SHADE_TYPE
-        
+
         invalid_chars = " ".join([s for s in ",;!#" if s in self.name])
         if invalid_chars:
             ERRS.append(["Prohibited chars found: {}".format(invalid_chars),
                          "Name must not contain any of these chars: . , ; ! #"])
         layout.row().prop(self, "name", "Name")# reusing the unique node-name as shade material name
         layout.row().prop(self, self.layout_enum)
-        
+
         slts = [skt for skt in self.inputs if skt.name.endswith("Thickness (mm)")  ]
         slss = [skt for skt in self.inputs if skt.name.endswith("Spacing (mm)")]
         if len(slss) + len(slts) < 2 or SHADE_TYPE=="Shade": pass
@@ -775,7 +775,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
             prep = ["Slat-","Wire-"][SHADE_TYPE == "Screen"]
             ERRS.append(["'{}-Spacing' must be equal to".format(prep),
                          "or bigger than '{}-Thickness'".format(prep)])
-        
+
         if ERRS!=[]:
             lbox = layout.row().box()
             lbox.label("ERROR{}:".format(["","S"][len(ERRS)>1]))
@@ -792,7 +792,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
     bl_idname = 'EnViShadConNode'
     bl_label  = 'ShadingControl'
     bl_icon   = 'SOUND'
-    
+
     ### update-functions. They MUST stay on top
     def update(self):
         if not self.initialised: return
@@ -831,7 +831,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
             else:
                 skt.hide = False
                 skt.name = "SetPoint1{}".format([""," (degC)"," (W)"," (W/m2)"][spt1])
-        
+
         if "SetPoint2 (W/m2)" in self.inputs.keys():
             # verzoegerung beim erzeugen beruecksichtigt
             skt = self.inputs["SetPoint2 (W/m2)"]
@@ -860,7 +860,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         if self.SHADE_TYPE=="Screen": self.ENUM[name]="placement_Sc"
         else: self.ENUM[name]="placement"
         return
-    
+
     ### PROPS
     initialised = bpy.props.BoolProperty(default=False)# wurde das objekt fertig gestellt
     shade_type = bpy.props.EnumProperty( # art der Verschattung
@@ -871,13 +871,13 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         name    ="Shade Type",
         default ="Blind",
         update  =upd_placement)
-    
+
     ### EnumSocketProps
     ENUM = {"Control Type":"control_type", "Placement":"placement",
             "Slat-Control":"slatAngleControl"}
     ENUM_HOOKS={"Slat-Control":[upd_layout],
             "Control Type":[upd_layout]}
-    
+
     slat_items=[("FixedSlatAngle",       "FixedSlatAngle",
                 "Slats wont be controlled"),
                ("ScheduledSlatAngle",   "ScheduledSlatAngle",
@@ -921,14 +921,14 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         "OnNightIfHeatingAndOnDayIfCooling",                # heat+cool
         "OffNightAndOnDayIfCoolingAndHighSolarOnWindow",    # cool
         "OnNightAndOnDayIfCoolingAndHighSolarOnWindow",     # cool
-        "OffNightAndOnDayIfCoolingAndHighHorizontalSolar",  # - 
-        "OnNightAndOnDayIfCoolingAndHighHorizontalSolar",   # - 
-        
+        "OffNightAndOnDayIfCoolingAndHighHorizontalSolar",  # -
+        "OnNightAndOnDayIfCoolingAndHighHorizontalSolar",   # -
+
         "OnIfHighOutdoorAirTempAndHighSolarOnWindow",       # cool
         "OnIfHighOutdoorAirTempAndHighHorizontalSolar",     # cool
         "OnIfHighZoneAirTempAndHighSolarOnWindow",          # cool
         "OnIfHighZoneAirTempAndHighHorizontalSolar"]        # cool
-    
+
     control_type=bpy.props.EnumProperty( # art der Verschattungs-steuerung
         items =[( "AlwaysOn",  "Always On" , ""),
                 ("AlwaysOff",  "Always Off", ""),
@@ -939,7 +939,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         name    ="Control Types",
         default ="OnIfHighSolarOnWindow",
         update  =upd_enumSocket)
-    
+
     ### Output-Declaration
     ## ShadeDevice musst have the identical(!) name for input and output
     #   or requesting the Shade will raise an error
@@ -951,12 +951,12 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         ("EnumSocket",      "Control Type"),
         ("EnumSocket",      "Placement"),
         ("EnViSchedSocket", "Schedule"),
-        
+
         ("NodeSocketFloat", "SetPoint1 (degC)", "", 180),
         ("EnumSocket",      "Slat-Control"),
         ("EnViSchedSocket", "Angle-Schedule"),
         ("NodeSocketFloat", "SetPoint2 (W/m2)")]
-    
+
     ### utility
     def getSched(self, sched): # scheduleNode or None
         if sched in self.inputs.keys():
@@ -964,7 +964,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
             if skt.is_linked: return skt.links[0].from_node
             return None
         return None
-    
+
     ### GETTER&SETTER
     @property # matching with EnViShadDevNode
     def SHADE_TYPE(self): # allows the socket to check ### anpassen?
@@ -1009,13 +1009,13 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
     @property
     def node_tree(self): # gets its parent nodetree
         return [ng for ng in bpy.data.node_groups if self in ng.nodes[:]][0]
-    
+
     def init(self, context):
         setUpSockets(self, self.skts_out, False, True)
         setUpSockets(self, self.skts_in,  True)
         self.initialised = True # das object wurde fertig gestellt
         self.upd_layout() # Layout-Update erzwingen
-    
+
     def export(self):
         ALL = OrderedDict([
             ("Name",        self.name       ), # name                           =>field1
@@ -1023,14 +1023,14 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
             ("Placement",   self.PLACEMENT  ), # placement                      =>field2
             ("Control",     self.CONTROL    ), # control                        =>field4
             ("Schedule",    self.C_SCHEDULE )])# scheduleNode oder none         =>field5
-        
+
         # art von SetPoint1 definieren
         spt1=0
         if   self.CONTROL in [self.ctypes[i] for i in [0,1,2,]]: spt1 = 0 # NONE
         elif self.CONTROL in [self.ctypes[i] for i in [5,6,8,9,11,-4,-3,-2,-1]]: spt1 = 1 # degC
         elif self.CONTROL in [self.ctypes[i] for i in [7,10,12   ]]: spt1 = 2 # W
         elif self.CONTROL in [self.ctypes[i] for i in [3,4,13,14 ]]: spt1 = 3 # W/m2
-        
+
         if spt1==0: #                                                           =>field6
             ALL.update({"SetPoint1" : None})
             ALL.update({"spt"       : ""  })
@@ -1054,12 +1054,12 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
 
     def draw_buttons(self, context, layout):
         ERRS = []
-        
+
         invalid_chars = " ".join([s for s in ",;!#" if s in self.name])
         if invalid_chars:
             ERRS.append(["Prohibited chars found: {}".format(invalid_chars),
                          "Name must not contain any of these chars: . , ; ! #"])
-        
+
         layout.prop(self, "name", "Name")
         if not self.HAS_SHADE:
             layout.prop(self, "shade_type")
@@ -1088,7 +1088,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
                 self.inputs.remove(self.inputs["Slat-Control"])
             if "Angle-Schedule" in self.inputs.keys():
                 self.inputs.remove(self.inputs["Angle-Schedule"])
-        
+
         if ERRS!=[]:
             lbox = layout.row().box()
             lbox.label("ERROR{}:".format(["","S"][len(ERRS)>1]))
@@ -1162,13 +1162,13 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
             use = face.use
             if face.name not in self.forbidden_faces:
                 layout.row().prop(face, "use", text=face.name, toggle=1)
-        
+
         ERRS = []
         invalid_chars = " ".join([s for s in ",;!#" if s in self.name])
         if invalid_chars:
             ERRS.append(["Prohibited chars found: {}".format(invalid_chars),
                          "Name must not contain any of these chars: . , ; ! #"])
-        
+
         for skt in self.inputs:
             if not skt.is_linked: ERRS.append(["'{}' must be connected".format(skt.name)])
         if ERRS!=[]:
@@ -1193,7 +1193,7 @@ class EnViFloatNode(bpy.types.Node, EnViNodes):
     bl_idname = 'EnViFloatNode'
     bl_label  = 'Value'
     bl_icon   = 'SOUND'
-    
+
     def update(self):
         if "Value" in self.outputs:
             for l in self.outputs[0].links:
@@ -1208,7 +1208,7 @@ class EnViCFloatNode(bpy.types.Node, EnViNodes):
     bl_idname = 'EnViCFloatNode'
     bl_label  = 'Clamped Value'
     bl_icon   = 'SOUND'
-    
+
     def update(self):
         if "Value" in self.outputs:
             for l in self.outputs[0].links:
@@ -1227,7 +1227,7 @@ class EnViStringNode(bpy.types.Node, EnViNodes):
     bl_idname = 'EnViStringNode'
     bl_label  = 'String Value'
     bl_icon   = 'SOUND'
-    
+
     def update(self):
         if "Value" in self.outputs:
             for l in self.outputs[0].links:
@@ -1241,6 +1241,11 @@ class EnViStringNode(bpy.types.Node, EnViNodes):
 # END PATCH-Nodes => shading-device (HBC)
 #'''
 
+# this tuple is needed for registration purposes (done by vi-suite/__init__)
+shading_device_classes = (# the nodetree is already listet by vi-suite/__init__
+    EnViShadeSocket, EnViControlSocket, ClampedFloatSocket, EnumSocket,# sockets
+    EnViShadDevNode, EnViShadConNode,   EnViShadWinNode,    # Shading Nodes
+    EnViFloatNode,   EnViCFloatNode,    EnViStringNode  )   # Simple input nodes
 
 ### PATCH - Categories  => shading-device (HBC)
 envinode_categories.extend([
