@@ -95,7 +95,7 @@ def MaterialLayout(layout, root, layer_idx=0, previous_material="", Mat_Props=No
                 ("brick", "cladding", "concrete", "metal", "stone", "wood", "gas", "insulation")[int(layer_MatClass)], num)) #####}
             newrow(layout, "{} layer thickness:".format(numtext), root, "envi_export_l{}_thi".format(num))
             return "" ### Damit klar ist dass Wall-types funktionieren
-    
+
     elif layer_composition == '2': ##### CUSTOM
         if root.envi_con_type != 'Window': ##### Standart-Materialien
             box_props(layout, root, Mat_Props, "envi_export_l{}_".format(num))
@@ -103,7 +103,7 @@ def MaterialLayout(layout, root, layer_idx=0, previous_material="", Mat_Props=No
                 newrow(layout, "TCTC:", root, "envi_tctc_l{}".format(num))
                 newrow(layout, "Temps:Enthalpies:", root, "envi_tempsemps_l{}".format(num))
             return "" ### Damit klar ist dass Wall-types funktionieren
-    
+
         else: ##### Fenster
             newrow(layout, "Name:", root, "envi_export_l{}_name".format(num))
             if previous_material=="Glass": ### Gas
@@ -160,7 +160,7 @@ def setUpSockets(node, values, as_input=True, force=False):
     bools = ["NodeSocketBool"]
     colors= ["NodeSocketColor"]
     ### envi
-    envis = ["EnViSchedSocket"]
+    envis = ["So_En_Sched"]# schedule, had been EnViSchedSocket in v04
     ### eigene
     clamped = [ "ClampedFloatSocket",
                 "ClampedIntSocket",]
@@ -168,7 +168,7 @@ def setUpSockets(node, values, as_input=True, force=False):
     enums = ["EnumSocket"]
     shade = ["EnViShadeSocket"]
     control=["EnViControlSocket"]
-    
+
     act = [node.outputs, node.inputs][as_input].new
     for val in values:
         identifier = ""
@@ -208,7 +208,7 @@ def setUpSockets(node, values, as_input=True, force=False):
             elif type(default)in(int,float):
                 default= number(default)
                 default=[default,min(default,0),max(default,1)]
-            
+
             if len( default)>=3:
                 skt.default_value= default[0]
                 skt.min_value    = default[1]
@@ -254,14 +254,14 @@ def update_shaded_materials(ng, context=""): # transplant into the nodetree?
     MATS = ng.envi_shaded_materials
     MATS.clear()
     for mat in bpy.data.materials:
-        if all((#mat.envi_shadingdevice==True,# No longer in use
-                mat.envi_con_type =="Window",
-                mat.envi_export   == True,
-                mat.envi_boundary == False,
-                not (mat.envi_con_makeup=='1'
-                 and mat.envi_layero=='0'))):
-            matColItem = MATS.add()
-            matColItem.name = mat.name
+        if mat.vi_params.envi_export and mat.vi_params.envi_nodes:# exported and nodes exist
+            con = [n for n in mat.vi_params.envi_nodes.nodes # there's only one
+                if n.bl_idname=="No_En_Mat_Con"][0] # construction per material
+            if all((con.envi_con_type == "Window", # its a window
+                    con.envi_con_con == "External",# and external ## mat.envi_boundary == False,
+                   (con.envi_con_makeup!='1' # and either a preset or has layers > is probably valid
+                 or con.inputs["Outer layer"].is_linked))): # mat.envi_layero
+                MATS.add().name = mat.name # add material name to list of available windows
     ng.upd_mat_faces() # forces update of the EnViShadWinNodes material-pointers
 
 ### META: Clamped-Socket
@@ -271,7 +271,7 @@ class ClampedSocket_META():
     Otherwise it will be corrected accordingly. Derived classes must have
     a int/float-vector (size=3) to the variable 'true_default_value' .
     'titled'=False and 'valueOnly'=True both referre to the layout.'''
-    
+
     def upd(self, context=""): #TODO: Reihenfolge umkehren ermoeglichen
         if  self.max_value <= self.min_value:
             return ## safety against permanent recursion
@@ -279,10 +279,10 @@ class ClampedSocket_META():
             self.true_default_value[0]=self.min_value
         if  self.default_value>self.max_value:
             self.true_default_value[0]=self.max_value
-    
+
     def upd_draw(self, context=""):#redraw erzwingen
         self.default_value=self.default_value
-    
+
     @property
     def default_value(self):
         if self.valueOnly or self.is_output or not self.is_linked:
@@ -306,7 +306,7 @@ class ClampedSocket_META():
             return getattr(self.links[0].from_socket, "max_value",
                            self.true_default_value[2])
         else: return self.links[0].from_socket.default_value[2]
-    
+
     @default_value.setter
     def default_value(self,value):
         if type(value)()in [0,0.0,""]: ### floats, ints, strings
@@ -323,12 +323,12 @@ class ClampedSocket_META():
     @max_value.setter
     def max_value(self,value):
         self.true_default_value[2] = float(value)
-    
+
     titled    = bpy.props.BoolProperty(default=False,
                                        update=upd_draw)
     valueOnly = bpy.props.BoolProperty(default=True,
                                        update=upd_draw)
-    
+
     def draw(self, context, layout, node, text):
         if self.is_output:
             if self.valueOnly: layout.label(text); return

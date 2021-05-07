@@ -1,8 +1,7 @@
 # PATCH => shading-device (HBC)
 import bpy
-from ..vi_node import envinode_categories, EnViNodeCategory, ViGExEnNode
-from ..vi_node import EnViNodes
-from ..vi_node import EnViNetwork as _EnViNetwork
+from ..vi_node import ( envinode_categories, EnViNodeCategory, EnViNodes,
+    EnViNetwork as _EnViNetwork, No_En_Geo as ViGExEnNode)# Envi-Geometry Node (renamed since v04x)
 from .utils import setUpSockets, ClampedSocket_META, socketid
 from .utils import EnVi_Multiple, update_shaded_materials
 from nodeitems_utils import NodeCategory, NodeItem, NodeItemCustom
@@ -950,11 +949,11 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         ("EnViShadeSocket", "Shade"),
         ("EnumSocket",      "Control Type"),
         ("EnumSocket",      "Placement"),
-        ("EnViSchedSocket", "Schedule"),
+        ("So_En_Sched",     "Schedule"), # bl_idname changed since the v04x versions
 
         ("NodeSocketFloat", "SetPoint1 (degC)", "", 180),
         ("EnumSocket",      "Slat-Control"),
-        ("EnViSchedSocket", "Angle-Schedule"),
+        ("So_En_Sched",     "Angle-Schedule"),
         ("NodeSocketFloat", "SetPoint2 (W/m2)")]
 
     ### utility
@@ -1076,7 +1075,8 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
             if "Slat-Control" in self.inputs.keys():
                 if self.S_CONTROL=="ScheduledSlatAngle":
                     if "Angle-Schedule" not in self.inputs.keys():
-                        self.inputs.new("EnViSchedSocket","Angle-Schedule")
+                        self.inputs.new(*self.skts_in[-2])# add Angle-Schedule
+                        # self.inputs.move(-1, -2)        # restore order
                 else:
                     if "Angle-Schedule" in self.inputs.keys():
                         self.inputs.remove(self.inputs["Angle-Schedule"])
