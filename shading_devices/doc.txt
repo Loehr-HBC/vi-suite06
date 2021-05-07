@@ -1,0 +1,105 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+"""This is the documentation for the project "Shading Devices".
+
+Use:
+    Once installed you can (de-)activate this expansion by (un-)commenting
+    the additional lines in '__init__.py', to render them (in-)effective.
+    For how to use it, please consult the pdf.
+
+History:
+    "Shading Devices" is a project by the 'University of applied science'
+    in Biberach (Riss) in Germany. The goal was to provide shading devices
+    to the open-source blender-addon 'VI-suite', which does energy- and
+    light- calculations for bildings. The expansion was written in summer
+    2016 by Felix Loehr, as a single person student research project.
+    It was exhaustively tested and optimized in the following year,
+    and ported to the newest version of the 'VI-suite'.
+    In december 2017 Felix Loehr separated the main functionality,
+    as far as possible, from the original source code, to allow for easier
+    maintenance, porting and optimization.
+
+Adding/Removing:
+    This project still changes the original code on multiple occasions.
+    Once installed you can deactivate this expansion by commenting
+    the additional lines in '__init__.py', to render them ineffective.
+    To install it, you have to modify two scripts of the 'VI-suite':
+    '__init__.py':
+        1. (somewhere around line 35) AFTER the line:
+            imp.reload(vi_node)
+          add the line:
+            imp.reload(shading_devices) # PATCH => shading-devices (HBC)
+        2. AFTER the line:
+            from .vi_node import vinode_categories, envinode_categories
+          add the lines:
+            # PATCH => shading-devices (HBC)
+            # > Now 'envinode_categories' are pulled from shading_nodes.
+            # > That's needed as we modify the nodetree 'EnViNetwork'.
+            from .shading_devices.shading_nodes import envinode_categories
+    'envi_export.py':
+        1. In the import block, add this lines:
+            # PATCH => shading-devices (HBC)
+            from .shading_devices.export import setup_Shades
+        (Optional) (around line 45) replace this section:
+            Southall\n!- Date
+          with this section:
+            Southall\n!- Adaptions: Felix Loehr - University of Applied Science Biberach\n!- Date
+        2. AFTER the line:
+            matcount, matname, namelist = [], [], []
+          add the line:
+            shaded_mats = {} # PATCH => shading-devices (HBC)
+        3. (around the line 105) AFTER the line:
+            ec.con_write(en_idf, mat.envi_con_type, conname, str(namelist.count(conname)-1), mat.name, curlaynames)
+          add the lines:
+            # PATCH => shading-devices (HBC)
+            # > we need to know the construction
+            if curlaynames and mat.envi_con_type=="Window":
+                if not mat.envi_boundary:
+                    shaded_mats.update({mat.name:curlaynames})
+        4. (around the line 105) AFTER the line:
+            params, paramvs = ['Name'],  [mat.name]
+          add the lines:
+            # PATCH => shading-devices (HBC)
+            # > we need to know the construction
+            if conlist and mat.envi_con_type=="Window":
+                if not mat.envi_boundary:
+                    shaded_mats.update({mat.name:conlist})
+        5. (around the line 175) BEFORE the line:
+            em.namedict = {}
+          add the lines:
+            # PATCH => shading-devices (HBC)
+            ShadedWindows = setup_Shades(en_idf, enng, shaded_mats)
+        6. (around the line 230) replace this section:
+            'autocalculate', '', '',
+          with this section:
+            'autocalculate', ShadedWindows.get(
+            # PATCH => shading-devices (HBC)
+            "{}@{}".format(face.index, obj.name),""), '',
+    You should also consider adding the HBC Adaptions info block
+    from below. Modify it to match the changes you made.
+
+# ##### BEGIN HBC ADAPTATIONS ##### ------------------------------------###
+#  The 'University of applied science' in Biberach made some adaptations. #
+#  ALL ADAPTATIONS ARE MARKED BY A COMMENT CONTAINING (HBC)               #
+#                                                                         #
+# ### adaption info for this script ### --------------------------------###
+#  At the time being, there are {one} adaptations made. (6 changes)       #
+#  These adaptions will NOT change the LICENSE provided.                  #
+# ##### END HBC ADAPTATIONS ##### --------------------------------------###
+"""
