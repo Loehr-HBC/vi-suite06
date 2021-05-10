@@ -24,7 +24,7 @@ class EnViNetwork(bpy.types.NodeTree):
     nodetypes = {}
 
     # for the shaded materials to choose in the ShadedWindow-node
-    envi_shaded_materials = bpy.props.CollectionProperty(type=EnVi_Multiple)
+    envi_shaded_materials : bpy.props.CollectionProperty(type=EnVi_Multiple)
     # update
     def upd_mat_faces(self, collection="", context=""):
         mats = [mat.name for mat in self.envi_shaded_materials]
@@ -86,7 +86,7 @@ class EnViShadeSocket(bpy.types.NodeSocket):
         if False:#self.is_linked and not self.is_output:
             if any(lk.is_valid for lk in self.links):
                 text+="({})".format(self.SHADE_TYPE)
-        layout.label(text)
+        layout.label(text=text)
 
     def draw_color(self, context, node):
         return (0.0, 0.0, 0.5, 1)
@@ -108,7 +108,7 @@ class EnViControlSocket(bpy.types.NodeSocket):
                 raise KeyError("NODE: {}\n   NO CONTROL PROVIDED".format(self.name))
 
     def draw(self, context, layout, node, text):
-        layout.label(text)
+        layout.label(text=text)
 
     def draw_color(self, context, node):
         return (0.0, 0.5, 0.0, 1)
@@ -126,7 +126,7 @@ class ClampedFloatSocket(bpy.types.NodeSocket, ClampedSocket_META):
     def upd(self, context=""):
         ClampedSocket_META.upd(self,context)
     ### This FloatVector actualy holds the data
-    true_default_value = bpy.props.FloatVectorProperty(
+    true_default_value : bpy.props.FloatVectorProperty(
             default = [0,0,1], update=upd)
 
     def draw_color(self, context="", node=""):
@@ -151,7 +151,7 @@ class EnumSocket(bpy.types.NodeSocket):
     @property
     def valid(self): self.is_valid(self.true_default_value)
 
-    true_default_value = bpy.props.StringProperty()
+    true_default_value : bpy.props.StringProperty()
     # If __allowed isnt empty, only values in __allowed can be valid.
     __allowed = []
 
@@ -193,7 +193,7 @@ class EnumSocket(bpy.types.NodeSocket):
 
     def draw(self, context, layout, node, text):
         #self.advanced_draw(context, layout, node, text); return
-        if self.is_linked: layout.label(text)
+        if self.is_linked: layout.label(text=text)
         else:
             propname = node.ENUM.get(self.name,"")
             if propname!="":
@@ -205,17 +205,17 @@ class EnumSocket(bpy.types.NodeSocket):
             val = getattr(self.links[0].from_socket, "default_value", None)
             if val==None:
                 box = layout.box()
-                box.label("INVALID INPUT TYPE")
-                box.row().label("Input has no 'default_value'-String")
+                box.label(text="INVALID INPUT TYPE")
+                box.row().label(text="Input has no 'default_value'-String")
                 return
-            #if self.valid: layout.label(text)
-            if self.is_valid(val): layout.label(text)
+            #if self.valid: layout.label(text=text)
+            if self.is_valid(val): layout.label(text=text)
             else:
                 box = layout.box()
-                box.label("INVALID INPUT")
-                box.box().label("{}".format(self.default_value))
+                box.label(text="INVALID INPUT")
+                box.box().label(text="{}".format(self.default_value))
                 if enum != "":
-                    box.label("This is used instead")
+                    box.label(text="This is used instead")
                     box.prop(node, enum)
         else:
             layout.alert=(self.__allowed!=[] and
@@ -473,13 +473,13 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         ("-7","No Opening Multiplier",
          "only hide sockets that define opening multipliers"                  )]
 
-    layout_enum_B = bpy.props.EnumProperty(name  = "Layout", default = "1",
+    layout_enum_B : bpy.props.EnumProperty(name  = "Layout", default = "1",
                                            items = layout_items + layout_items_B,
                                            update= upd_layout)
-    layout_enum_S = bpy.props.EnumProperty(name  = "Layout", default = "1",
+    layout_enum_S : bpy.props.EnumProperty(name  = "Layout", default = "1",
                                            items = layout_items + layout_items_S,
                                            update= upd_layout)
-    layout_enum_Sc= bpy.props.EnumProperty(name  = "Layout", default = "1",
+    layout_enum_Sc : bpy.props.EnumProperty(name  = "Layout", default = "1",
                                            items = layout_items + layout_items_Sc,
                                            update= upd_layout)
 
@@ -498,13 +498,13 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
 
     # IMPORTANT: Do NOT implement "ComplexShade" into this Node.
     #            Complex Shades are ONLY for use with "ComplexFenestration"
-    shade_type = bpy.props.EnumProperty(name = "Shade Type", default = "Blind",
+    shade_type : bpy.props.EnumProperty(name = "Shade Type", default = "Blind",
         items =[("Blind",   "Blind",    "Venetian Blinds"),
                 ("Shade",   "Shade",    "Shades of cloth"),
                 ("Screen",  "Screen",   "Insect Screen"  )],
         update  =upd_enumSocket)
 
-    AngOfRes = bpy.props.EnumProperty(name  = "Output Map", default = "0",
+    AngOfRes : bpy.props.EnumProperty(name  = "Output Map", default = "0",
         items = [("0","No Map", "Do not create a map"),
                  ("1", "1 deg", "Use 1 degree as angular resolution"),
                  ("2", "2 deg", "Use 2 degree as angular resolution"),
@@ -512,14 +512,14 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
                  ("5", "5 deg", "Use 5 degree as angular resolution")],
         description="Angle of resolution for a 'Screen Transmittance Output Map'",
         update = upd_enumSocket)
-    AccMethod= bpy.props.EnumProperty(name = "ReflectedLight",
+    AccMethod : bpy.props.EnumProperty(name = "ReflectedLight",
         items = [("DoNotModel","Ignore Reflected Transmittance", ""),
                  ("ModelAsDirectBeam", "Model as direct beam",   ""),
                  ("ModelAsDiffuse",    "Model as diffuse",       "")],
         description="Method of accounting for light that is reflected trough the screen",
         default = "ModelAsDiffuse", update = upd_enumSocket)
 
-    slat_orientation = bpy.props.EnumProperty( # slat orientation
+    slat_orientation : bpy.props.EnumProperty( # slat orientation
         items =[("HORIZONTAL","HORIZONTAL","Slats run horizontal.(Standard)"),
                 ("VERTICAL",  "VERTICAL",  "Slats run vertically."          )],
         name = "Orientation", default = "HORIZONTAL", update = upd_enumSocket)
@@ -764,7 +764,7 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
         if invalid_chars:
             ERRS.append(["Prohibited chars found: {}".format(invalid_chars),
                          "Name must not contain any of these chars: . , ; ! #"])
-        layout.row().prop(self, "name", "Name")# reusing the unique node-name as shade material name
+        layout.row().prop(self, "name", text="Name")# reusing the unique node-name as shade material name
         layout.row().prop(self, self.layout_enum)
 
         slts = [skt for skt in self.inputs if skt.name.endswith("Thickness (mm)")  ]
@@ -777,12 +777,12 @@ class EnViShadDevNode(bpy.types.Node, EnViNodes):
 
         if ERRS!=[]:
             lbox = layout.row().box()
-            lbox.label("ERROR{}:".format(["","S"][len(ERRS)>1]))
+            lbox.label(text="ERROR{}:".format(["","S"][len(ERRS)>1]))
 #            self.use_custom_color, self.color = 1, (1, 0.2, 0.2, 0.2) # geht nur in update-funktionen
             for err in ERRS:
                 if err != []:
                     box = lbox.box()
-                    for e in err: box.row().label(e)
+                    for e in err: box.row().label(text=e)
         return
 
 ### ShadingControls
@@ -861,8 +861,8 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         return
 
     ### PROPS
-    initialised = bpy.props.BoolProperty(default=False)# wurde das objekt fertig gestellt
-    shade_type = bpy.props.EnumProperty( # art der Verschattung
+    initialised : bpy.props.BoolProperty(default=False)# wurde das objekt fertig gestellt
+    shade_type : bpy.props.EnumProperty( # art der Verschattung
         items =[("Blind",   "Blind",    "Venetian Blinds"),
                 ("Shade",   "Shade",    "Shade"          ),
                 ("Screen",  "Screen",   "Mosquito-Screen"),
@@ -884,7 +884,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
                ("BlockBeamSolar",       "BlockBeamSolar",
                 "Slats rotate to block direct beams of sunlight.")
               ]
-    slatAngleControl = bpy.props.EnumProperty(
+    slatAngleControl : bpy.props.EnumProperty(
         items=slat_items[:],
         default="FixedSlatAngle",
         update =upd_enumSocket)
@@ -895,12 +895,12 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
                 ("BetweenGlass" , "between" ,
                  "The shading device is placed between the inner two sheets of the window")]
 
-    placement   = bpy.props.EnumProperty( # art der Verschattung
+    placement   : bpy.props.EnumProperty( # art der Verschattung
         items   = placement_items[:],
         name    ="Placement",
         default ="Exterior",
         update  =upd_enumSocket)
-    placement_Sc= bpy.props.EnumProperty( # art der Verschattung
+    placement_Sc : bpy.props.EnumProperty( # art der Verschattung
         items   = [placement_items[1]], # extern
         name    ="Placement",
         default ="Exterior",
@@ -928,7 +928,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
         "OnIfHighZoneAirTempAndHighSolarOnWindow",          # cool
         "OnIfHighZoneAirTempAndHighHorizontalSolar"]        # cool
 
-    control_type=bpy.props.EnumProperty( # art der Verschattungs-steuerung
+    control_type : bpy.props.EnumProperty( # art der Verschattungs-steuerung
         items =[( "AlwaysOn",  "Always On" , ""),
                 ("AlwaysOff",  "Always Off", ""),
                 ("OnIfScheduleAllows", "Schedule",""),
@@ -1059,7 +1059,7 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
             ERRS.append(["Prohibited chars found: {}".format(invalid_chars),
                          "Name must not contain any of these chars: . , ; ! #"])
 
-        layout.prop(self, "name", "Name")
+        layout.prop(self, "name", text="Name")
         if not self.HAS_SHADE:
             layout.prop(self, "shade_type")
             if "Shade" in self.outputs.keys():
@@ -1091,11 +1091,11 @@ class EnViShadConNode(bpy.types.Node, EnViNodes):
 
         if ERRS!=[]:
             lbox = layout.row().box()
-            lbox.label("ERROR{}:".format(["","S"][len(ERRS)>1]))
+            lbox.label(text="ERROR{}:".format(["","S"][len(ERRS)>1]))
             for err in ERRS:
                 if err != []:
                     box = lbox.box()
-                    for e in err: box.row().label(e)
+                    for e in err: box.row().label(text=e)
         return
 
 ### ShadedWindows
@@ -1124,8 +1124,8 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
                         FACE.name = facename
                         FACE.use  = not facename in used
     ### props
-    faces   = bpy.props.CollectionProperty(type=EnVi_Multiple)
-    mat_def = bpy.props.StringProperty(default="", update=upd_faces)
+    faces   : bpy.props.CollectionProperty(type=EnVi_Multiple)
+    mat_def : bpy.props.StringProperty(default="", update=upd_faces)
     ### GETTER&SETTER
     @property # all faces that are used by this node right now
     def used_faces(self): return [f.name for f in self.faces if f.use ==True]
@@ -1173,13 +1173,13 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
             if not skt.is_linked: ERRS.append(["'{}' must be connected".format(skt.name)])
         if ERRS!=[]:
             lbox = layout.row().box()
-            lbox.label("WARNING{}:".format(["","S"][len(ERRS)>1]))
+            lbox.label(text="WARNING{}:".format(["","S"][len(ERRS)>1]))
 #            self.use_custom_color, self.color = 1, (1, 0.2, 0.2, 0.2) # geht nur in update-funktionen
             for err in ERRS:
                 if err != []:
                     box = lbox.box()
-                    for e in err: box.row().label(e)
-            lbox.row().label("These windows will be ignored")
+                    for e in err: box.row().label(text=e)
+            lbox.row().label(text="These windows will be ignored")
         return
     def copy(self, oldnode):
         """applies changes to itself after being derived from oldnode"""

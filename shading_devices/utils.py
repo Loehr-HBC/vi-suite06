@@ -74,14 +74,14 @@ def MaterialLayout(layout, root, layer_idx=0, previous_material="", Mat_Props=No
 
     ##### Anfang des eigentlichen Layouts
     row = layout.row()
-    if layer_idx>=1:row.label("----------------")
+    if layer_idx>=1:row.label(text="----------------")
     newrow(layout, "{} layer:".format(numtext), root,"envi_layer{}".format(num))
     ### Abfrage nach der Art des Aufbaus des Layers.
     if layer_composition == '1': ##### DATABASE
         if root.envi_con_type == "Window":
             if previous_material == "Glass": ### Gas
                 row = layout.row()
-                row.label("Gas Type:")
+                row.label(text="Gas Type:")
                 row.prop(root, "envi_export_wgaslist_l{}".format(num))
                 row.prop(root, "envi_export_l{}_thi".format(num))
                 new_material = "Gas"
@@ -178,13 +178,13 @@ def setUpSockets(node, values, as_input=True, force=False):
         if len(val)>2: identifier = val[2]
         if len(val)>3: default    = val[3]
         if typ in bools:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             if default!=None: skt.default_value=bool(default)
         elif typ in strs:
-            act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             if default!=None: skt.default_value="{}".format(default)
         elif typ in colors:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             if        default == None: default=[0,0,0,1]
             elif type(default)==  int: default=[default]*3+[1]
             elif type(default)==float: default=[default]*3+[1]
@@ -192,17 +192,17 @@ def setUpSockets(node, values, as_input=True, force=False):
             elif len( default)==    3: default=list(default)+[1]
             skt.default_value=default
         elif typ in floats:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             skt.default_value=[default,0.0][default==None]
         elif typ in ints:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             skt.default_value=[default,0][default==None]
         elif typ in vecs:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             if  default!=None:
                 skt.default_value=list(default)
         elif typ in clamped:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             number = type(skt.default_value)
             if        default==None: default=[]
             elif type(default)in(int,float):
@@ -217,18 +217,18 @@ def setUpSockets(node, values, as_input=True, force=False):
                 skt.titled       = bool(default[3])
                 skt.valueOnly    = bool(default[4])
         elif typ in enums:
-            skt = act(typ,name,identifier)
+            skt = act(typ, name, identifier=identifier)
             if default==None: pass#default=("",[])
             elif type(default)()=="": skt.default_value=default
             elif type(default)==list:
                 skt.default_value = default[0]
                 skt.allowed = default[1]
         elif typ in shade or typ in control:
-            skt = act(typ, name, identifier)
+            skt = act(typ, name, identifier=identifier)
         elif typ in envis or typ in control:
-            skt = act(typ, name, identifier)
+            skt = act(typ, name, identifier=identifier)
         elif force==True:
-            skt = act(typ, name, identifier)
+            skt = act(typ, name, identifier=identifier)
 
 def socketid(skt): ### wie nodeid, nur fuer sockets ## reihenfolge umdrehen?
     for ng in bpy.data.node_groups:
@@ -245,8 +245,8 @@ def nodeById(ID): ### bisher nirgends verwendet # Nimmt nodeid oder socketid
 class EnVi_Multiple(bpy.types.PropertyGroup):
     '''This provides a StringProperty 'name' and a BoolProperty named use.
     Its used as selector for materials and checkboxes for the windows'''
-    name  = bpy.props.StringProperty()
-    use   = bpy.props.BoolProperty()
+    name  : bpy.props.StringProperty()
+    use   : bpy.props.BoolProperty()
 
 bpy.utils.register_class(EnVi_Multiple)
 
@@ -324,14 +324,14 @@ class ClampedSocket_META():
     def max_value(self,value):
         self.true_default_value[2] = float(value)
 
-    titled    = bpy.props.BoolProperty(default=False,
+    titled    : bpy.props.BoolProperty(default=False,
                                        update=upd_draw)
-    valueOnly = bpy.props.BoolProperty(default=True,
+    valueOnly : bpy.props.BoolProperty(default=True,
                                        update=upd_draw)
 
     def draw(self, context, layout, node, text):
         if self.is_output:
-            if self.valueOnly: layout.label(text); return
+            if self.valueOnly: layout.label(text=text); return
             # if it is a output you'll only see it if you force it to
             # so why bother with only the value anyways?
         if self.valueOnly: box = layout
@@ -340,15 +340,15 @@ class ClampedSocket_META():
         if self.is_linked:
             row=box.row()
             row.alignment='CENTER'
-            row.label(text)
+            row.label(text=text)
         else:
             if self.titled:
                 row=box.row()
                 row.alignment='CENTER'
-                row.label(text)
+                row.label(text=text)
                 text="Value"
-            box.prop(self, "true_default_value",     text,index=0)
+            box.prop(self, "true_default_value",     text=text,      index=0)
             if not self.valueOnly:
                 row=box.row()
-                row.prop(self, "true_default_value","Minimum",index=1)
-                row.prop(self, "true_default_value","Maximum",index=2)
+                row.prop(self, "true_default_value", text="Minimum", index=1)
+                row.prop(self, "true_default_value", text="Maximum", index=2)
