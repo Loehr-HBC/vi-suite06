@@ -1108,11 +1108,12 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
     def upd_faces(self, context=""):
         self.faces.clear()
         used = self.forbidden_faces
-        # get objects, sorted by name
-        objs = sorted([obj for obj in bpy.data.objects], key=lambda o:o.name)
+        # get (visible) objects, sorted by name
+        objs = sorted(bpy.context.visible_objects, key=lambda o:o.name)
         for obj in objs: ## all vi-zone - objekte
-            if all((obj.layers[1], obj.type=='MESH',
-                    obj.vi_type=='1')):
+            if all((obj.type=='MESH', # obj.layers[1], <=> handled by visibility
+                    obj.vi_params.vi_type=='1',     # it is an envi-surface
+                    obj.vi_params.envi_type=='0')): # it is a  construction
                 # get polygons, sorted by index
                 faces = sorted([face for face in obj.data.polygons],
                                 key=lambda f:f.index)
