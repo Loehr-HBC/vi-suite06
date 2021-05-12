@@ -21,6 +21,9 @@ from .vi_func import selobj, facearea, selmesh, create_coll, selobs, logentry
 from .envi_func import epentry, epschedwrite, get_con_node, boundpoly, get_zone_node
 from .envi_mat import retuval
 
+# PATCH => shading-devices (HBC)
+from .shading_devices.export import setup_Shades
+
 dtdf = datetime.date.fromordinal
 caidict = {"0": "", "1": "Simple", "2": "Detailed", "3": "TrombeWall", "4": "AdaptiveConvectionAlgorithm"}
 caodict = {"0": "", "1": "SimpleCombined", "2": "TARP", "3": "DOE-2", "4": "MoWiTT", "5": "AdaptiveConvectionAlgorithm"}
@@ -92,6 +95,7 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
             node.edate.month, node.edate.day, '', "", "Yes", "Yes", "No", "Yes", "Yes")
         en_idf.write(epentry('RunPeriod', params, paramvs))
 
+        shaded_mats = {} # PATCH => shaded materials(HBC)
         en_idf.write("!-   ===========  ALL OBJECTS IN CLASS: MATERIAL & CONSTRUCTIONS ===========\n\n")
 
         for mat in bpy.data.materials:
@@ -104,7 +108,7 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
 #                                em.sg_write(en_idf, mat.name+'_sg', emnode.envi_sg_uv, emnode.envi_sg_shgc, emnode.envi_sg_vt)
 #                                ec.con_write(en_idf, emnode.envi_con_type, mat.name, mat.name+'_sg', mat.name, [mat.name+'_sg'])
 #                            else:
-                            en_idf.write("! ### Verglasung Marker (HBC)\n")
+                            shaded_mats.update({mat.name: emnode}) # (HBC)
                             en_idf.write(emnode.ep_write(mat.name))
                         else:
                             if emnode.envi_con_type not in ('None', 'Shading', 'Aperture'):
@@ -112,6 +116,10 @@ def enpolymatexport(exp_op, node, locnode, em, ec):
                         if emnode.inputs['PV'].links:
                             gen = 1
                             pvs.append(emnode)
+
+        # PATCH => shading-devices (HBC)
+        ShadedWindows = setup_Shades(en_idf, enng, shaded_mats, verbose=True)
+
         em.namedict = {}
         em.thickdict = {}
 

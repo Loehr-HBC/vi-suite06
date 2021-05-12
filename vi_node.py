@@ -4611,8 +4611,9 @@ class No_En_Net_EMSPy(Node, EnViNodes):
 
     def epwrite(self):
         if self.py_mod and self.py_class:
+            py_mod = os.path.splitext(self.py_mod)[0]# pop off the .py extension
             pyparams = ('Name', 'Run During Warmup Days', 'Python Module Name', 'Plugin Class Name')
-            pyparamvs = ('Apply Discrete Package Sizes to Air System Sizing', 'Yes', self.py_mod, self.py_class)
+            pyparamvs = ('Apply Discrete Package Sizes to Air System Sizing', 'Yes', py_mod, self.py_class)
             return epentry('PythonPlugin:Instance', pyparams, pyparamvs)
         else:
             return ''
@@ -5187,8 +5188,9 @@ class No_En_Mat_Con(Node, EnViMatNodes):
                        self.atnoct, (self.ctnoct, self.e1ddict[self.e1menu][7] - 273.14)[self.e1menu != 'Custom'], self.inoct, self.hlc, self.thc)
             ep_text += epentry('PhotovoltaicPerformance:EquivalentOne-Diode', params, paramvs)
         return ep_text
-    def ep_write(self, mn):
 
+    def ep_write(self, mn, return_construction=False): # (HBC) actively request construction
+        construction = [[],[]] # (Dummy in case something goes wrong. overridden later.)
         self['matname'] = get_mat(self, 1).name
         con_type = {'Roof': 'Ceiling', 'Floor': 'Internal floor', 'Wall': 'Internal wall'}[self.envi_con_type] if self.envi_con_con in ('Thermal mass', 'Zone') and self.envi_con_type in ('Roof', 'Wall', 'Floor') else self.envi_con_type
         envi_mats = envi_materials()
@@ -5198,6 +5200,7 @@ class No_En_Mat_Con(Node, EnViMatNodes):
                 params = ['Name', 'Outside layer']
                 paramvs = [mn, mn + '_sg']
                 ep_text = epentry('Construction', params, paramvs)
+                construction = [params, paramvs] # (HBC)
                 params = ('Name', 'U-Factor', 'Solar Heat Gain Coefficient', 'Visible Transmittance')
                 paramvs = [self['matname'] + '_sg'] + ['{:.3f}'.format(p) for p in (self.envi_sg_uv, self.envi_sg_shgc, self.envi_sg_vt)]
                 ep_text += epentry("WindowMaterial:SimpleGlazingSystem", params, paramvs)
@@ -5207,6 +5210,7 @@ class No_En_Mat_Con(Node, EnViMatNodes):
                 params = ['Name', 'Outside layer'] + ['Layer {}'.format(i + 1) for i in range(len(mats) - 1)]
                 paramvs = [mn] + ['{}-layer-{}'.format(mn, mi) for mi, m in enumerate(mats)]
                 ep_text = epentry('Construction', params, paramvs)
+                construction = [params, paramvs] # (HBC)
 
                 for pm, presetmat in enumerate(mats):
                     matlist = list(envi_mats.matdat[presetmat])
@@ -5282,6 +5286,7 @@ class No_En_Mat_Con(Node, EnViMatNodes):
                 n += 1
 
             ep_text += epentry('Construction', params, paramvs)
+            construction = [params, paramvs] # (HBC)
 
             if get_mat(self, 1).vi_params.envi_shading:
                 in_sock = self.inputs['Outer layer']
@@ -5303,6 +5308,10 @@ class No_En_Mat_Con(Node, EnViMatNodes):
 
                     n += 1
                 ep_text += epentry('Construction', params, paramvs)
+                construction += [params, paramvs] # (HBC) let's grab that as well.
+                # It looks like this is where he adds shaded constructions...
+                # the approach is based on skipping? Wonky...
+                # What's up with switchable glazing though? Also: incomplete
 
         if self.envi_con_type in ('Window', 'Door'):
             if self.fclass == '0' or self.envi_con_type == 'Door':
@@ -5325,6 +5334,9 @@ class No_En_Mat_Con(Node, EnViMatNodes):
 
             elif self.fclass == '2':
                 ep_text += self.layer_write(self.inputs['Outer frame layer'], mn)
+
+        if return_construction:
+            return ep_text, construction # (HBC) get the construction...
 
         return ep_text
 

@@ -10,7 +10,7 @@
 ###             of your work from it.                                        ###
 ############################################################### 80 CHAR MARGIN #
 
-# THIS WAS MEANT FOR VI-SUITE 0.4.6
+# THIS WAS MEANT FOR VI-SUITE 0.4.6     AND IS UPDATED TO VI-SUITE 0.6.0
 
 from ..vi_func import newrow
 CUSTOM_Mat_Props    = [ 'name', 0, 'thi', 'tc', 0, 'rho', 'shc',

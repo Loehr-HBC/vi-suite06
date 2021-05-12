@@ -1107,26 +1107,38 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
     ### upd
     def upd_faces(self, context=""):
         self.faces.clear()
+        self.zones.clear() # (EP-9-3-0)
         used = self.forbidden_faces
-        # get (visible) objects, sorted by name
-        objs = sorted(bpy.context.visible_objects, key=lambda o:o.name)
+        # get objects, sorted by name
+        #objs = sorted(bpy.context.visible_objects, key=lambda o:o.name)
+        objs = sorted(bpy.data.collections["EnVi Geometry"].all_objects, key=lambda o:o.name)
         for obj in objs: ## all vi-zone - objekte
-            if all((obj.type=='MESH', # obj.layers[1], <=> handled by visibility
-                    obj.vi_params.vi_type=='1',     # it is an envi-surface
-                    obj.vi_params.envi_type=='0')): # it is a  construction
+            if all((obj.type=='MESH',  # obj.layers[1], # this is handled by visibility
+                   # obj.vi_params.vi_type=='1',     # it is an envi-surface
+                   # obj.vi_params.envi_type=='0',   # it is a constructions
+                    True)):
                 # get polygons, sorted by index
                 faces = sorted([face for face in obj.data.polygons],
                                 key=lambda f:f.index)
                 for face in faces:
                     mat = obj.data.materials[face.material_index]
                     if mat.name==self.mat_def: # store 'faceID'
-                        facename="{}@{}".format(face.index, obj.name)
+                        #facename="{}@{}".format(face.index, obj.name)# vi-04
+                        facename="{}_{}".format(obj.name, face.index)# vi-06
                         FACE = self.faces.add()
                         FACE.name = facename
                         FACE.use  = not facename in used
+                self.zones.add().name = obj.name # attatch zone
     ### props
+    zones   : bpy.props.CollectionProperty(type=EnVi_Multiple)
     faces   : bpy.props.CollectionProperty(type=EnVi_Multiple)
-    mat_def : bpy.props.StringProperty(default="", update=upd_faces)
+    mat_def : bpy.props.StringProperty(default="", update=upd_faces,
+                description="Which material to use.")
+    c_zone  : bpy.props.StringProperty(default="", name="zone",
+                description="Which zone to use this shading system for.") # draw zone to use here...
+    priority: bpy.props.IntProperty(min=1, max=99, default=1,
+                description="Which shading system of a zone reacts first.\n"
+                "Starting by #1 closing first.")
     ### GETTER&SETTER
     @property # all faces that are used by this node right now
     def used_faces(self): return [f.name for f in self.faces if f.use ==True]
@@ -1151,6 +1163,8 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
             ("Shade",   self.inputs[ "Shade" ].SHADE),
             ("Control", self.inputs["Control"].CONTROL),
             ("Material",self.mat_def),
+            ("Zone",    self.c_zone),   # EP-9-3
+            ("Priority",self.priority), # EP-9-3
             ("Faces",   self.used_faces)
         ])
         return ALL
@@ -1159,6 +1173,10 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
         layout.prop_search(self, 'mat_def',
                            self.node_tree, 'envi_shaded_materials',
                            icon='MATERIAL')
+        layout.prop_search(self, 'c_zone',
+                           self, 'zones',
+                           icon='CUBE') # TODO: flop faces that are not in here...
+        layout.prop(self, 'priority')
         for face in self.faces:
             use = face.use
             if face.name not in self.forbidden_faces:
@@ -1172,6 +1190,7 @@ class EnViShadWinNode(bpy.types.Node, EnViNodes):
 
         for skt in self.inputs:
             if not skt.is_linked: ERRS.append(["'{}' must be connected".format(skt.name)])
+        if not self.c_zone: ERRS.append(["Zone not set.","Please set a zone."])
         if ERRS!=[]:
             lbox = layout.row().box()
             lbox.label(text="WARNING{}:".format(["","S"][len(ERRS)>1]))
