@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-import bpy, glob, os, inspect, datetime, shutil, time, math, mathutils, sys, json
+import bpy, glob, os, datetime, shutil, time, math, mathutils, sys, json
 from bpy.props import EnumProperty, FloatProperty, IntProperty, BoolProperty, StringProperty, FloatVectorProperty
 from bpy.types import NodeTree, Node, NodeSocket
 from nodeitems_utils import NodeCategory, NodeItem
@@ -31,6 +31,9 @@ from .livi_export import livi_sun, livi_sky, livi_ground, hdrexport
 from .envi_mat import envi_materials, envi_constructions, envi_embodied, envi_layer, envi_layertype, envi_con_list
 from numpy import where, sort, median, array, argsort, stack, sum as nsum
 from .vi_dicts import rpictparams, rvuparams, rtraceparams, rtracecbdmparams
+
+### get paths
+from .paths import path_addon, path_EPFiles
 
 try:
     import netgen
@@ -76,13 +79,13 @@ class No_Loc(Node, ViNodes):
 
         if self.loc == '1':
             entries = []
-            addonfolder = os.path.basename(os.path.dirname(os.path.abspath(__file__)))
+            addonfolder = os.path.basename(path_addon)
             vi_prefs = bpy.context.preferences.addons['{}'.format(addonfolder)].preferences
 
             if vi_prefs and os.path.isdir(bpy.path.abspath(vi_prefs.epweath)):
                 epwpath = bpy.path.abspath(vi_prefs.epweath)
             else:
-                epwpath = os.path.dirname(os.path.abspath(__file__)) + '/EPFiles/Weather/'
+                epwpath = os.path.join(path_EPFiles, 'Weather', "")
 
             for wfile in glob.glob(epwpath+"/*.epw"):
                 with open(wfile, 'r') as wf:
@@ -1391,8 +1394,7 @@ class No_En_Con(Node, ViNodes):
                     ("3", "Country", "Flat, Open Country"),("4", "Ocean", "Ocean, very flat country")],
                     name="", description="Specify the surrounding terrain", default="0", update = nodeupdate)
 
-    addonpath = os.path.dirname(inspect.getfile(inspect.currentframe()))
-    matpath = addonpath+'/EPFiles/Materials/Materials.data'
+    matpath   = os.path.join( path_EPFiles, 'Materials', 'Materials.data')
     sdoy: IntProperty(name = "", description = "Day of simulation", min = 1, max = 365, default = 1, update = nodeupdate)
     edoy: IntProperty(name = "", description = "Day of simulation", min = 1, max = 365, default = 365, update = nodeupdate)
     timesteps: IntProperty(name = "", description = "Time steps per hour", min = 1, max = 60, default = 1, update = nodeupdate)
@@ -6498,26 +6500,22 @@ class No_En_Mat_PV(Node, EnViMatNodes):
     l = -40
 
     def ret_e1dmenu(self, context):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('PV_database.json')), 'r') as pv_json:
+        with open(os.path.join(path_EPFiles, 'PV_database.json'), 'r') as pv_json:
             e1ddict = json.loads(pv_json.read())
         return [(p, p, '{} module'.format(p)) for p in e1ddict]
 
     def ret_sandiamenu(self, context):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('SandiaPVdata.json')), 'r') as sandia_json:
+        with open(os.path.join(path_EPFiles, 'SandiaPVdata.json'), 'r') as sandia_json:
             sandiadict = json.loads(sandia_json.read())
         return [(p, p, '{} module'.format(p)) for p in sandiadict]
 
     def ret_e1ddict(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('PV_database.json')), 'r') as pv_json:
+        with open(os.path.join(path_EPFiles, 'PV_database.json'),  'r') as pv_json:
             e1ddict = json.loads(pv_json.read())
             return e1ddict
 
     def save_e1ddict(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('PV_database.json')), 'r') as pv_json:
+        with open(os.path.join(path_EPFiles, 'PV_database.json'),  'r') as pv_json:
             e1ddict = json.loads(pv_json.read())
 
         e1ddict[self.pv_name] = [self.scc, self.ocv, self.mv, self.mc, self.tcscc,
@@ -6525,16 +6523,13 @@ class No_En_Mat_PV(Node, EnViMatNodes):
         self.e1ddict = e1ddict
 #        self.e1dmenu = self.pv_name
 
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('PV_database.json')), 'w') as e1d_jfile:
+        with open(os.path.join(path_EPFiles, 'PV_database.json'),  'w') as e1d_jfile:
             e1d_jfile.write(json.dumps(e1ddict))
 
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        'EPFiles', '{}'.format('PV_database.json')), 'r') as pv_json:
+    with     open(os.path.join(path_EPFiles, 'PV_database.json'),  'r') as pv_json:
         e1ddict = json.loads(pv_json.read())
 
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-        'EPFiles', '{}'.format('SandiaPVdata.json')), 'r') as sandia_json:
+    with     open(os.path.join(path_EPFiles, 'SandiaPVdata.json'), 'r') as sandia_json:
         sandiadict = json.loads(sandia_json.read())
 
     ct: EnumProperty(name = "", description = "Photovoltaic Type", default = "0",

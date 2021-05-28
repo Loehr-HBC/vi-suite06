@@ -36,39 +36,42 @@ if "bpy" in locals():
     imp.reload(vi_func)
     imp.reload(vi_node)
     imp.reload(envi_mat)
+    imp.reload(paths)
 else:
     import sys, os, inspect, shlex, bpy
     from subprocess import Popen, call
     evsep = {'linux': ':', 'darwin': ':', 'win32': ';'}
-    addonpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+    # get paths
+    from .paths import path_EPFiles, path_RadFiles, path_OFFiles, path_Python
+    from .paths import path_addon # only used in VI_Params_Scene for vipath     ## remove?
     try:
         import matplotlib.pyplot as plt
         from kivy.app import App
     except:
         if sys.version_info[1] == 7:
             if os.environ.get('PYTHONPATH'):
-                if os.path.join(addonpath, 'Python', sys.platform) not in os.environ['PYTHONPATH']:
-                    os.environ['PYTHONPATH'] += evsep[sys.platform] + os.path.join(addonpath, 'Python', sys.platform)
+                if os.path.join(path_Python, sys.platform) not in os.environ['PYTHONPATH']:
+                    os.environ['PYTHONPATH'] += evsep[sys.platform] + os.path.join(path_Python, sys.platform)
             else:
-                os.environ['PYTHONPATH'] = os.path.join(addonpath, 'Python', sys.platform)
+                os.environ['PYTHONPATH'] = os.path.join(path_Python, sys.platform)
 
             if sys.platform =='linux':
                 if not os.environ.get('LD_LIBRARY_PATH'):
-                    os.environ['LD_LIBRARY_PATH'] = os.path.join(addonpath, 'Python', sys.platform)
-                elif os.path.join(addonpath, 'Python', sys.platform) not in os.environ['LD_LIBRARY_PATH']:
-                    os.environ['LD_LIBRARY_PATH'] += evsep[sys.platform] + os.path.join(addonpath, 'Python', sys.platform)
+                    os.environ['LD_LIBRARY_PATH'] = os.path.join(path_Python, sys.platform)
+                elif os.path.join(path_Python, sys.platform) not in os.environ['LD_LIBRARY_PATH']:
+                    os.environ['LD_LIBRARY_PATH'] += evsep[sys.platform] + os.path.join(path_Python, sys.platform)
                     sys.argv = [bpy.app.binary_path]
                     os.execv(sys.argv[0], sys.argv)
-            sys.path.append(os.path.join(addonpath, 'Python', sys.platform))
+            sys.path.append(os.path.join(path_Python, sys.platform))
 
             if os.environ.get('PATH'):
-                if os.path.join(addonpath, 'Python', sys.platform, 'bin') not in os.environ['PATH']:
-                    os.environ['PATH'] += evsep[sys.platform] + os.path.join(addonpath, 'Python', sys.platform, 'bin')
+                if os.path.join(path_Python, sys.platform, 'bin') not in os.environ['PATH']:
+                    os.environ['PATH'] += evsep[sys.platform] + os.path.join(path_Python, sys.platform, 'bin')
             else:
-                os.environ['PATH'] = os.path.join(addonpath, 'Python', sys.platform, 'bin')
+                os.environ['PATH'] = os.path.join(path_Python, sys.platform, 'bin')
 
         elif sys.version_info[1] >= 8:
-            os.add_dll_directory(os.path.join(addonpath, 'Python', sys.platform))
+            os.add_dll_directory(os.path.join(path_Python, sys.platform))
 
     if sys.platform in ('linux', 'darwin'):
         for fn in ('cnt', 'epw2wea', 'evalglare', 'falsecolor', 'genBSDF',
@@ -78,15 +81,15 @@ else:
                    'rcalc', 'rcontrib', 'rfluxmtx', 'rmtxop', 'rpict', 'rpiece',
                    'rtrace', 'rttree_reduce', 'rvu', 'vwrays', 'wrapBSDF', 'xform'):
             try:
-                if not os.access(os.path.join(addonpath, 'RadFiles', sys.platform, 'bin', fn), os.X_OK):
-                    os.chmod(os.path.join(addonpath, 'RadFiles', sys.platform, 'bin', fn), 0o775)
+                if not os.access(os.path.join(path_RadFiles, sys.platform, 'bin', fn), os.X_OK):
+                    os.chmod(os.path.join(path_RadFiles, sys.platform, 'bin', fn), 0o775)
             except:
                 print('{} not found'.format(fn))
 
         for fn in ('energyplus', 'ExpandObjects'):
             try:
-                if not os.access(os.path.join(addonpath, 'EPFiles', sys.platform, fn), os.X_OK):
-                    os.chmod(os.path.join(addonpath, 'EPFiles', sys.platform, fn), 0o775)
+                if not os.access(os.path.join(path_EPFiles, sys.platform, fn), os.X_OK):
+                    os.chmod(os.path.join(path_EPFiles, sys.platform, fn), 0o775)
             except:
                 print('{} not found'.format(fn))
 
@@ -268,8 +271,9 @@ class VI_Params_Scene(bpy.types.PropertyGroup):
             self.id_data.frame_set(value)
             self['vi_frames'] = value
 
-    vi_name =  sprop("", "VI-Suite addon directory name", 1024, "")
-    vipath: sprop("VI Path", "Path to files included with the VI-Suite ", 1024, addonpath)
+    vi_name =  sprop("", "VI-Suite addon directory name", 1024, "")             # NOTE: only occurrence
+    ### NOTE: vipath is/was only used by livi_func and livi_export to get latlong from the radfiles lib path
+    vipath: sprop("VI Path", "Path to files included with the VI-Suite ", 1024, path_addon)
     vi_frames: IntProperty(name = "", description = "Day of year", get=get_frame, set=set_frame)
     solday: IntProperty(name = "", description = "Day of year", min = 1, max = 365, default = 1, update=sunpath1)
     solhour: bpy.props.FloatProperty(name = "", description = "Time of day", subtype='TIME', unit='TIME', min = 0, max = 24, default = 12, update=sunpath1)
@@ -647,23 +651,23 @@ def getEnViMaterialSpaces():
 
 def path_update():
     vi_prefs = bpy.context.preferences.addons[__name__].preferences
-    epdir = vi_prefs.epbin if vi_prefs and vi_prefs.epbin and os.path.isdir(vi_prefs.epbin) else os.path.join(addonpath, 'EPFiles', sys.platform)
-    radldir = vi_prefs.radlib if vi_prefs and os.path.isdir(vi_prefs.radlib) else os.path.join(addonpath, 'RadFiles', 'lib')
-    radbdir = vi_prefs.radbin if vi_prefs and os.path.isdir(vi_prefs.radbin) else os.path.join(addonpath, 'RadFiles', sys.platform, 'bin')
-    ofbdir = os.path.abspath(vi_prefs.ofbin) if vi_prefs and os.path.isdir(vi_prefs.ofbin) else os.path.join(addonpath, 'OFFiles', sys.platform, 'bin')
+    epdir = vi_prefs.epbin if vi_prefs and vi_prefs.epbin and os.path.isdir(vi_prefs.epbin) else os.path.join(path_EPFiles, sys.platform)
+    radldir = vi_prefs.radlib if vi_prefs and os.path.isdir(vi_prefs.radlib) else os.path.join(path_RadFiles, 'lib')
+    radbdir = vi_prefs.radbin if vi_prefs and os.path.isdir(vi_prefs.radbin) else os.path.join(path_RadFiles, sys.platform, 'bin')
+    ofbdir = os.path.abspath(vi_prefs.ofbin) if vi_prefs and os.path.isdir(vi_prefs.ofbin) else os.path.join(path_OFFiles, sys.platform, 'bin')
 
     if not os.environ.get('RAYPATH') or radldir not in os.environ['RAYPATH'] or radbdir not in os.environ['PATH'] or epdir not in os.environ['PATH'] or ofbdir not in os.environ['PATH']:
         if vi_prefs and os.path.isdir(vi_prefs.radlib):
-            os.environ["RAYPATH"] = '{0}{1}{2}'.format(radldir, evsep[sys.platform], os.path.join(addonpath, 'RadFiles', 'lib'))
+            os.environ["RAYPATH"] = '{0}{1}{2}'.format(radldir, evsep[sys.platform], os.path.join(path_RadFiles, 'lib'))
         else:
             os.environ["RAYPATH"] = radldir
         if radbdir not in os.environ["PATH"]:
-            native_path = os.path.join(addonpath, 'RadFiles', sys.platform, 'bin')
+            native_path = os.path.join(path_RadFiles, sys.platform, 'bin')
             if native_path in os.environ["PATH"]:
                 os.environ["PATH"].replace(native_path, radbdir)
             else:
                os.environ["PATH"] += '{0}{1}'.format(evsep[sys.platform], radbdir)
-        os.environ["PATH"] += "{0}{1}{0}{2}{0}{3}".format(evsep[sys.platform], epdir, ofbdir, os.path.join(addonpath, 'Python', sys.platform, 'bin'))
+        os.environ["PATH"] += "{0}{1}{0}{2}{0}{3}".format(evsep[sys.platform], epdir, ofbdir, os.path.join(path_Python, sys.platform, 'bin'))
         sys.path.append(ofbdir)
 
 classes = (VIPreferences, ViNetwork, No_Loc, So_Vi_Loc, No_Vi_SP, NODE_OT_SunPath,

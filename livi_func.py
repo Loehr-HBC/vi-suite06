@@ -30,6 +30,9 @@ from numpy import append as nappend
 from .vi_func import vertarea, logentry, ct2RGB, clearlayers, chunks, selobj, solarPosition, sunapply
 from .vi_dicts import res2unit, unit2res
 
+# get paths
+from .paths import path_RadFiles
+
 def sunposlivi(scene, skynode, frames, sun, stime):
     svp = scene.vi_params
 
@@ -306,7 +309,9 @@ def cbdmhdr(node, scene):
                 Popen(shlex.split('oconv -w - '), stdin = PIPE, stdout=hdroct, stderr=STDOUT).communicate(input = skyentry.encode(sys.getfilesystemencoding()))
 
             cntrun = Popen('cnt 750 1500'.split(), stdout = PIPE)
-            rccmd = 'rcalc -f "{}" -e XD=1500;YD=750;inXD=0.000666;inYD=0.001333'.format(os.path.join(svp.vipath, 'RadFiles', 'lib', 'latlong.cal'))
+            ### NOTE you got the exact same string defined in livi-export as rcalccmd
+            rccmd = 'rcalc -f "{}" -e XD=1500;YD=750;inXD=0.000666;inYD=0.001333'.format(
+                            os.path.join(path_RadFiles, 'lib', 'latlong.cal'))
             logentry('Running rcalc: {}'.format(rccmd))
             rcalcrun = Popen(shlex.split(rccmd), stdin = cntrun.stdout, stdout = PIPE)
 

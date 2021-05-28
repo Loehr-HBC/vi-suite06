@@ -22,6 +22,9 @@ import os, json
 from collections import OrderedDict
 from .envi_func import epentry
 
+# get paths
+from .paths import path_EPFiles
+
 class envi_materials(object):
     '''Defines materials with a comma separated dictionary, with material name as key, giving
     (Roughness, Conductivity {W/m-K}, Density {kg/m3}, Specific Heat {J/kg-K}, Thermal Absorbtance,
@@ -31,8 +34,7 @@ class envi_materials(object):
         self.update()
 
     def update(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('Material_database.json')), 'r') as mat_jfile:
+        with open(os.path.join(path_EPFiles, 'Material_database.json'), 'r') as mat_jfile:
             # First lets pull the json. The optional object_pairs_hook=OrderedDict
             # keeps the entries in the original order from the json-file.
             mat_od = json.loads(mat_jfile.read(), object_pairs_hook=OrderedDict)
@@ -99,8 +101,7 @@ class envi_materials(object):
                    'Stone': self.stone_datd, 'Gas': self.gas_datd,
                    'WGas': self.wgas_datd, 'Insulation': self.insulation_datd,
                    'PCM': self.pcm_datd, 'PCMD': self.pcmd_datd, 'Plastic': self.plastic_datd}
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('Material_database.json')), 'w') as mat_jfile:
+        with open(os.path.join(path_EPFiles, 'Material_database.json'), 'w') as mat_jfile:
             mat_jfile.write(json.dumps(mat_dict))
         self.update()
 
@@ -156,8 +157,7 @@ class envi_constructions(object):
         self.update()
 
     def update(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('Construction_database.json')), 'r') as con_jfile:
+        with open(os.path.join(path_EPFiles, 'Construction_database.json'), 'r') as con_jfile:
             con_dict = json.loads(con_jfile.read())
 
         self.wall_cond = con_dict['Wall']
@@ -202,8 +202,7 @@ class envi_constructions(object):
                     'Internal floor': self.ifloor_cond, 'Floor': self.floor_cond,
                     'Ceiling': self.ceil_cond, 'Door': self.door_cond,
                     'Glazing': self.glaze_cond, 'Roof': self.roof_cond}
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-            'EPFiles', '{}'.format('Construction_database.json')), 'w') as con_jfile:
+        with open(os.path.join(path_EPFiles, 'Construction_database.json'), 'w') as con_jfile:
             con_jfile.write(json.dumps(con_dict))
         self.update()
 
@@ -298,7 +297,7 @@ class envi_embodied(object):
         self.update()
 
     def update(self):
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'EPFiles', '{}'.format('EC_database.json')), 'r') as ec_jfile:
+        with open(os.path.join(path_EPFiles, 'EC_database.json'), 'r') as ec_jfile:
             ec_dict = json.loads(ec_jfile.read())
             self.agg_ecd = ec_dict['aggregatesand']
             self.alu_ecd = ec_dict['aluminium']

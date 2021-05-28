@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import bpy, os, sys, inspect, multiprocessing, mathutils, bmesh, datetime, colorsys, bgl, blf, bpy_extras, math
+import bpy, os, sys, multiprocessing, mathutils, bmesh, datetime, colorsys, bgl, blf, bpy_extras, math
 from subprocess import Popen
 from numpy import array, digitize, amax, amin, average, clip, char, int8, frombuffer, uint8, multiply, float32
 #set_printoptions(threshold=nan)
@@ -29,6 +29,9 @@ from bpy.props import IntProperty, StringProperty, EnumProperty, FloatProperty, 
 from .vi_dicts import unit2res
 checked_groups_names_list = []
 materials_from_group = set()
+
+### get paths
+from .paths import path_Python, path_Images #, path_Fonts_NotoSansRegular font not used here
 
 def ret_plt():
     try:
@@ -338,10 +341,9 @@ class fvprogressfile():
                 pfile.write('0 Initialising')
 
 def progressbar(file, calctype):
-    addonpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     kivytext = "# -*- coding: "+sys.getfilesystemencoding()+" -*-\n\
 import os, sys\n\
-sys.path.append(os.path.join(r'"+addonpath+"', 'Python', sys.platform))\n\
+sys.path.append(os.path.join(r'"+path_Python+"', sys.platform))\n\
 from kivy.app import App \n\
 from kivy.clock import Clock \n\
 from kivy.uix.progressbar import ProgressBar\n\
@@ -394,10 +396,9 @@ if __name__ == '__main__':\n\
     return Popen([bpy.app.binary_path_python, file+".py"])
 
 def fvprogressbar(file, residuals):
-    addonpath = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
     kivytext = "# -*- coding: "+sys.getfilesystemencoding()+" -*-\n\
 import os, sys\n\
-sys.path.append(os.path.join(r'"+addonpath+"', 'Python', sys.platform))\n\
+sys.path.append(os.path.join(r'"+path_Python+"', sys.platform))\n\
 from kivy.app import App\n\
 from kivy.clock import Clock\n\
 from kivy.uix.progressbar import ProgressBar\n\
@@ -973,8 +974,8 @@ def wind_rose(wro, maxws, wrsvg, wrtype, colors):
     return ((wrbo, wro), scale)
 
 def compass(loc, scale, platmat, basemat, greymat):
-    bpy.ops.wm.append(filepath="sp.blend",directory=os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                    'Images/sp.blend', 'Object'),filename="SPathMesh", autoselect = True)
+    bpy.ops.wm.append(filepath="sp.blend",directory=os.path.join(path_Images,
+            'sp.blend', 'Object'), filename = "SPathMesh", autoselect = True)
 
     coo = bpy.data.objects['SPathMesh']
     bpy.context.view_layer.objects.active = coo
@@ -1044,7 +1045,7 @@ def compass(loc, scale, platmat, basemat, greymat):
 #    for d in range(16):
 #        bpy.ops.object.text_add(align='WORLD', enter_editmode=False, location=Vector(loc) + scale*1.0005*(tmatrot@direc), rotation=tmatrot.to_euler())
 #        txt = bpy.context.active_object
-#        txt.data.font = bpy.data.fonts.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Fonts/NotoSans-Regular.ttf'))
+#        txt.data.font = bpy.data.fonts.load(path_Fonts_NotoSansRegular)
 #        txt.scale, txt.data.body, txt.data.align_x, txt.data.align_y, txt.location[2]  = (scale*f_sizes[d], scale*f_sizes[d], scale*f_sizes[d]), f_texts[d], 'CENTER', 'BOTTOM', 0.05
 #        bpy.ops.object.convert(target='MESH')
 #        bpy.ops.object.material_slot_add()

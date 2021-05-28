@@ -23,6 +23,9 @@ from .vi_func import clearscene, solarPosition, retobjs, clearlayers, viparams, 
 from .livi_func import face_bsdf
 from numpy import array, where, in1d
 
+# get paths
+from .paths import path_RadFiles
+
 def radpoints(o, faces, sks):
     fentries = ['']*len(faces) 
     mns = [m.name.replace(" ", "_").replace(",", "") for m in o.data.materials]
@@ -358,7 +361,8 @@ def hdrexport(scene, f, frame, node, skytext):
         Popen(shlex.split(rpictcmd), stdout = hdrfile).communicate()
 
     cntrun = Popen('cnt 750 1500'.split(), stdout = PIPE)
-    rcalccmd = 'rcalc -f "{}" -e XD=1500;YD=750;inXD=0.000666;inYD=0.001333'.format(os.path.join(svp.vipath, 'RadFiles', 'lib', 'latlong.cal'))
+    rcalccmd = 'rcalc -f "{}" -e XD=1500;YD=750;inXD=0.000666;inYD=0.001333'.format(
+                            os.path.join(path_RadFiles, 'lib', 'latlong.cal'))
     rcalcrun = Popen(shlex.split(rcalccmd), stdin = cntrun.stdout, stdout = PIPE)
     rtracecmd = 'rtrace -n {} -x 1500 -y 750 -fac "{}-{}sky.oct"'.format(svp['viparams']['nproc'], svp['viparams']['filebase'], frame)
 

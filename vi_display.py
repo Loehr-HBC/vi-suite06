@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 
-import bpy, blf, mathutils, datetime, os, bgl, inspect, gpu, bmesh
+import bpy, blf, mathutils, datetime, os, bgl, gpu, bmesh
 from gpu_extras.batch import batch_for_shader
 from mathutils import Vector
 from bpy_extras import view3d_utils
@@ -50,6 +50,10 @@ try:
     mp = 1
 except:
     mp = 0
+
+### get paths
+from .paths import path_Images, path_Fonts
+path_Fonts_NotoSansRegular = os.path.join(path_Fonts, "NotoSans-Regular.ttf") # we only use NotoSans anyway
 
 kfsa = array([0.02391, 0.02377, 0.02341, 0.02738, 0.02933, 0.03496, 0.04787, 0.05180, 0.13552])
 kfact = array([0.9981, 0.9811, 0.9361, 0.8627, 0.7631, 0.6403, 0.4981, 0.3407, 0.1294])
@@ -536,7 +540,7 @@ class results_bar():
         
         for im in images:
             if im not in bpy.data.images:
-                bpy.data.images.load(os.path.join(os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe()))), 'Images', im))
+                bpy.data.images.load(os.path.join(path_Images, im)) # (HBC) now gets path from .paths
             self.shaders.append(gpu.shader.from_builtin('2D_IMAGE'))
     
     def ret_coords(self, xpos, rh, no):
@@ -640,8 +644,8 @@ class draw_bsdf(Base_Display):
         self.num_disp = 0
         self.leg_max, self.leg_min = 100, 0
         self.base_unit = unit
-        self.font_id = blf.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Fonts', 'NotoSans-Regular.ttf'))
         self.dpi = 157      
+        self.font_id = blf.load(path_Fonts_NotoSansRegular)
         self.v_coords = [(0, 0), (0, 1), (1, 1), (1, 0)]
         self.f_indices = [(0, 1, 2), (2, 3, 0)]
         self.segments = (1, 8, 16, 20, 24, 24, 24, 16, 12)            
@@ -655,9 +659,9 @@ class draw_bsdf(Base_Display):
         self.type = context.active_object.active_material.vi_params['bsdf']['type']
                 
         if self.iimage not in [im.name for im in bpy.data.images]:
-            bpy.data.images.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Images', 'bsdf_empty.png'))
             
         self.vi_coords = [(0.0, 0.0), (0.0, 1.0), (1.0, 1.0), (1.0, 0.0)] 
+            bpy.data.images.load(os.path.join(path_Images, 'bsdf_empty.png'))
         self.tex_coords = ((0, 0), (0, 1), (1, 1), (1, 0))
         self.sr = 0
         self.cr = 0
@@ -960,7 +964,7 @@ class svf_legend(Base_Display):
     def __init__(self, context, unit, pos, width, height, xdiff, ydiff):
         Base_Display.__init__(self, pos, width, height, xdiff, ydiff)
         self.unit = unit
-        self.font_id = blf.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Fonts/NotoSans-Regular.ttf'))
+        self.font_id = blf.load(path_Fonts_NotoSansRegular)
         self.dpi = 300
         self.levels = 20        
         self.v_coords = [(0, 0), (0, 1), (1, 1), (1, 0)]
@@ -1556,7 +1560,7 @@ class draw_legend(Base_Display):
     def __init__(self, context, unit, pos, width, height, xdiff, ydiff, levels):
         Base_Display.__init__(self, pos, width, height, xdiff, ydiff)
         self.base_unit = unit
-        self.font_id = blf.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Fonts/NotoSans-Regular.ttf'))
+        self.font_id = blf.load(path_Fonts_NotoSansRegular)
         self.dpi = 96
         self.levels = levels        
         self.v_coords = [(0, 0), (0, 1), (1, 1), (1, 0)]
@@ -4032,7 +4036,7 @@ class VIEW3D_OT_Li_BD(bpy.types.Operator):
 #     def __init__(self, context, unit, pos, width, height, xdiff, ydiff):
 #         Base_Display.__init__(self, pos, width, height, xdiff, ydiff)
 #         self.base_unit = unit
-#         self.font_id = blf.load(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Fonts/NotoSans-Regular.ttf'))
+#         self.font_id = blf.load(path_Fonts_NotoSansRegular)
 #         self.dpi = 157
 #         self.levels = 20        
 #         self.v_coords = [(0, 0), (0, 1), (1, 1), (1, 0)]
