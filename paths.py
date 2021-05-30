@@ -1,5 +1,8 @@
 ### NOTE This module provides utilities to handle paths in the vi-suite
 #   TODO Add actual utilities. Currently we only have some paths
+#   NOTE We no longer needed the inspect-module so I removed it and its calls...
+#   TODO Check if there are any errors arising from a path (not) ending on "\"
+#        vi_func exports to vi_progress. => path_Python MUST NOT end on "\"...
 import os
 
 ######## BEGIN: -DEFAULT PATHS- #############################################80#
@@ -17,4 +20,13 @@ path_Python   = os.path.join(__lib_path,    "Python"      )
 # get fonts, images and models we want to use
 path_Fonts    = os.path.join(__lib_path,    "Fonts",    "")
 path_Images   = os.path.join(__lib_path,    "Images",   "")
+######## END
+
+######## BEGIN: -CONVENIENCE PATHS- #########################################80#
+#   Currently, we only use NotoSans-Regular
+path_Fonts_NotoSansRegular = os.path.join(path_Fonts, "NotoSans-Regular.ttf")
+#   Databases for PV (default databases we ship)
+path_EPFiles_PVdata       = os.path.join(path_EPFiles, 'PV_database.json')
+path_EPFiles_PVdataSandia = os.path.join(path_EPFiles, 'SandiaPVdata.json')
+######## END
 

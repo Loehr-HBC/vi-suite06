@@ -38,12 +38,11 @@ if "bpy" in locals():
     imp.reload(envi_mat)
     imp.reload(paths)
 else:
-    import sys, os, inspect, shlex, bpy
+    import sys, os, shlex, bpy
     from subprocess import Popen, call
     evsep = {'linux': ':', 'darwin': ':', 'win32': ';'}
     # get paths
     from .paths import path_EPFiles, path_RadFiles, path_OFFiles, path_Python
-    from .paths import path_addon # only used in VI_Params_Scene for vipath     ## remove?
     try:
         import matplotlib.pyplot as plt
         from kivy.app import App
@@ -271,9 +270,6 @@ class VI_Params_Scene(bpy.types.PropertyGroup):
             self.id_data.frame_set(value)
             self['vi_frames'] = value
 
-    vi_name =  sprop("", "VI-Suite addon directory name", 1024, "")             # NOTE: only occurrence
-    ### NOTE: vipath is/was only used by livi_func and livi_export to get latlong from the radfiles lib path
-    vipath: sprop("VI Path", "Path to files included with the VI-Suite ", 1024, path_addon)
     vi_frames: IntProperty(name = "", description = "Day of year", get=get_frame, set=set_frame)
     solday: IntProperty(name = "", description = "Day of year", min = 1, max = 365, default = 1, update=sunpath1)
     solhour: bpy.props.FloatProperty(name = "", description = "Time of day", subtype='TIME', unit='TIME', min = 0, max = 24, default = 12, update=sunpath1)

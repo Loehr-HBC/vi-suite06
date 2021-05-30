@@ -33,7 +33,7 @@ from numpy import where, sort, median, array, argsort, stack, sum as nsum
 from .vi_dicts import rpictparams, rvuparams, rtraceparams, rtracecbdmparams
 
 ### get paths
-from .paths import path_addon, path_EPFiles
+from .paths import path_addon, path_EPFiles, path_EPFiles_PVdata, path_EPFiles_PVdataSandia
 
 try:
     import netgen
@@ -1394,7 +1394,6 @@ class No_En_Con(Node, ViNodes):
                     ("3", "Country", "Flat, Open Country"),("4", "Ocean", "Ocean, very flat country")],
                     name="", description="Specify the surrounding terrain", default="0", update = nodeupdate)
 
-    matpath   = os.path.join( path_EPFiles, 'Materials', 'Materials.data')
     sdoy: IntProperty(name = "", description = "Day of simulation", min = 1, max = 365, default = 1, update = nodeupdate)
     edoy: IntProperty(name = "", description = "Day of simulation", min = 1, max = 365, default = 365, update = nodeupdate)
     timesteps: IntProperty(name = "", description = "Time steps per hour", min = 1, max = 60, default = 1, update = nodeupdate)
@@ -6499,23 +6498,23 @@ class No_En_Mat_PV(Node, EnViMatNodes):
     sandia_dict = {}
     l = -40
 
-    def ret_e1dmenu(self, context):
-        with open(os.path.join(path_EPFiles, 'PV_database.json'), 'r') as pv_json:
-            e1ddict = json.loads(pv_json.read())
-        return [(p, p, '{} module'.format(p)) for p in e1ddict]
 
+    ### (HBC) freshly loading keys to use on a frozen dict is a ticking bomb.
+    #   If the database gets updated, the data gets stale and keys might crash.
+    #   => get the keys straight from the dict (safe and keeps the api)
+    #       also: sorting the keys make e1dmenu and sandiamenu easier to use.
+    #   NOTE: One should rewrite this to allow updating the database ...
     def ret_sandiamenu(self, context):
-        with open(os.path.join(path_EPFiles, 'SandiaPVdata.json'), 'r') as sandia_json:
-            sandiadict = json.loads(sandia_json.read())
-        return [(p, p, '{} module'.format(p)) for p in sandiadict]
+        return [(p, p, '{} module'.format(p)) for p in sorted(self.sandiadict)]
 
-    def ret_e1ddict(self):
-        with open(os.path.join(path_EPFiles, 'PV_database.json'),  'r') as pv_json:
-            e1ddict = json.loads(pv_json.read())
-            return e1ddict
+    def ret_e1dmenu(self, context):
+        return [(p, p, '{} module'.format(p)) for p in sorted(self.e1ddict)]
 
+    def ret_e1ddict(self): # (HBC) unused? And to return in with-blocks is fine.
+        with open(path_EPFiles_PVdata,  'r') as pv_json:
+            return json.loads(pv_json.read())
     def save_e1ddict(self):
-        with open(os.path.join(path_EPFiles, 'PV_database.json'),  'r') as pv_json:
+        with open(path_EPFiles_PVdata,  'r') as pv_json:
             e1ddict = json.loads(pv_json.read())
 
         e1ddict[self.pv_name] = [self.scc, self.ocv, self.mv, self.mc, self.tcscc,
@@ -6523,13 +6522,14 @@ class No_En_Mat_PV(Node, EnViMatNodes):
         self.e1ddict = e1ddict
 #        self.e1dmenu = self.pv_name
 
-        with open(os.path.join(path_EPFiles, 'PV_database.json'),  'w') as e1d_jfile:
+        with open(path_EPFiles_PVdata,  'w') as e1d_jfile:
             e1d_jfile.write(json.dumps(e1ddict))
 
-    with     open(os.path.join(path_EPFiles, 'PV_database.json'),  'r') as pv_json:
+    ### (HBC) why do we use fixed copies here? why do we fake dynamic loading by using getter/setter functions?
+    with     open(path_EPFiles_PVdata,  'r') as pv_json:
         e1ddict = json.loads(pv_json.read())
 
-    with     open(os.path.join(path_EPFiles, 'SandiaPVdata.json'), 'r') as sandia_json:
+    with     open(path_EPFiles_PVdataSandia, 'r') as sandia_json:
         sandiadict = json.loads(sandia_json.read())
 
     ct: EnumProperty(name = "", description = "Photovoltaic Type", default = "0",

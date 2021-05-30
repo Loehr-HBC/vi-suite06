@@ -52,8 +52,7 @@ except:
     mp = 0
 
 ### get paths
-from .paths import path_Images, path_Fonts
-path_Fonts_NotoSansRegular = os.path.join(path_Fonts, "NotoSans-Regular.ttf") # we only use NotoSans anyway
+from .paths import path_Images, path_Fonts_NotoSansRegular # we only use NotoSans anyway
 
 kfsa = array([0.02391, 0.02377, 0.02341, 0.02738, 0.02933, 0.03496, 0.04787, 0.05180, 0.13552])
 kfact = array([0.9981, 0.9811, 0.9361, 0.8627, 0.7631, 0.6403, 0.4981, 0.3407, 0.1294])
