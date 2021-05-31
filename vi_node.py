@@ -6492,12 +6492,10 @@ class No_En_Mat_PV(Node, EnViMatNodes):
     bl_idname = 'No_En_Mat_PV'
     bl_label = 'EnVi PV'
 
-    def pv_update(self, context):
+    def pv_update(self, context): # (HBC) effectively unused ...
         pass
 
-    sandia_dict = {}
-    l = -40
-
+    l = -40 # (HBC) seems unused? remove?
 
     ### (HBC) freshly loading keys to use on a frozen dict is a ticking bomb.
     #   If the database gets updated, the data gets stale and keys might crash.
@@ -6513,17 +6511,17 @@ class No_En_Mat_PV(Node, EnViMatNodes):
     def ret_e1ddict(self): # (HBC) unused? And to return in with-blocks is fine.
         with open(path_EPFiles_PVdata,  'r') as pv_json:
             return json.loads(pv_json.read())
+
+    # (HBC) looking at https://stackoverflow.com/a/58925279 it seems we should
+    #   open with "r+", load & seek(0), modify, dump & truncate? (same length...)
+    #   Also json can load & dump right from/to filehandles (might be faster ...)
     def save_e1ddict(self):
         with open(path_EPFiles_PVdata,  'r') as pv_json:
-            e1ddict = json.loads(pv_json.read())
-
-        e1ddict[self.pv_name] = [self.scc, self.ocv, self.mv, self.mc, self.tcscc,
-                                 self.tcocv, self.mis, self.ctnoct, self.mod_area]
-        self.e1ddict = e1ddict
-#        self.e1dmenu = self.pv_name
-
-        with open(path_EPFiles_PVdata,  'w') as e1d_jfile:
-            e1d_jfile.write(json.dumps(e1ddict))
+            self.e1ddict = json.load(pv_json)
+        self.e1ddict[self.pv_name] = [self.scc, self.ocv, self.mv, self.mc,
+                self.tcscc, self.tcocv, self.mis, self.ctnoct, self.mod_area]
+        with open(path_EPFiles_PVdata,  'w') as pv_json:
+            json.dump(self.e1ddict, pv_json, sort_keys=True)
 
     ### (HBC) why do we use fixed copies here? why do we fake dynamic loading by using getter/setter functions?
     with     open(path_EPFiles_PVdata,  'r') as pv_json:
@@ -6623,7 +6621,11 @@ class No_En_Mat_PV(Node, EnViMatNodes):
 
                 if self.pv_name:
                     row=layout.row()
-                    row.operator('node.pv_save', text = "PV Save")
+                    if self.pv_name in self.ret_e1dmenu(context):
+                        row.operator('node.pv_save', text = "PV Save (replace)")
+                        row.alert=True
+                    else:
+                        row.operator('node.pv_save', text = "PV Save (add)")
 
             newrow(layout, "Trans*absorp:", self, "tap")
             newrow(layout, "Band gap:", self, "sbg")
