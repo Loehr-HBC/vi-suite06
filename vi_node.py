@@ -176,7 +176,7 @@ class No_Loc(Node, ViNodes):
     def ready(self):
         if self.loc == '1':
             if not self.weather: return 1
-        else
+        else:
             for link in self.outputs['Location out'].links:
                 if link.to_node.bl_label in ('LiVi CBDM', 'EnVi Export'):
                     return 1
