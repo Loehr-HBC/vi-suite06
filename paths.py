@@ -9,6 +9,12 @@ import os, sys
 ### NOTE These are the shipped default paths. One might want to change them ...
 #   start with the addon-path. It is our default __lib_path.
 path_addon    = __lib_path = os.path.dirname(os.path.abspath(__file__))
+#   NOTE with 1.65 GB the libraries we ship are quite heavy (the rest is 1.5 MB)
+#        For ease of development we use thin copies by binding the libs relative
+#        (we modified addon_utils to support extra addonpaths for rapid testing)
+if os.path.basename(os.path.dirname(path_addon)).startswith("addons_test"):
+    __lib_path = os.path.join(os.path.dirname(os.path.dirname(path_addon)),
+                                            "addons_shared", "vi-suite06")
 #   paths to our external binaries / libraries. Ending them on a path-separator
 #   allows to simply add filenames instead of os.path.join... which we still use ## explicit is better than implicit
 path_EPFiles  = os.path.join(__lib_path,    "EPFiles",  "")
