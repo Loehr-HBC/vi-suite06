@@ -43,6 +43,7 @@ else:
     evsep = {'linux': ':', 'darwin': ':', 'win32': ';'}
     # get paths
     from .paths import path_EPFiles, path_RadFiles, path_OFFiles, path_Python
+    from .paths import path_update
     try:
         import matplotlib.pyplot as plt
         from kivy.app import App
@@ -644,27 +645,6 @@ def getEnViMaterialSpaces():
         return [area.spaces.active for area in bpy.context.screen.areas if area and area.type == "NODE_EDITOR" and area.spaces.active.tree_type == "EnViMatN"]
     else:
         return []
-
-def path_update():
-    vi_prefs = bpy.context.preferences.addons[__name__].preferences
-    epdir = vi_prefs.epbin if vi_prefs and vi_prefs.epbin and os.path.isdir(vi_prefs.epbin) else os.path.join(path_EPFiles, sys.platform)
-    radldir = vi_prefs.radlib if vi_prefs and os.path.isdir(vi_prefs.radlib) else os.path.join(path_RadFiles, 'lib')
-    radbdir = vi_prefs.radbin if vi_prefs and os.path.isdir(vi_prefs.radbin) else os.path.join(path_RadFiles, sys.platform, 'bin')
-    ofbdir = os.path.abspath(vi_prefs.ofbin) if vi_prefs and os.path.isdir(vi_prefs.ofbin) else os.path.join(path_OFFiles, sys.platform, 'bin')
-
-    if not os.environ.get('RAYPATH') or radldir not in os.environ['RAYPATH'] or radbdir not in os.environ['PATH'] or epdir not in os.environ['PATH'] or ofbdir not in os.environ['PATH']:
-        if vi_prefs and os.path.isdir(vi_prefs.radlib):
-            os.environ["RAYPATH"] = '{0}{1}{2}'.format(radldir, evsep[sys.platform], os.path.join(path_RadFiles, 'lib'))
-        else:
-            os.environ["RAYPATH"] = radldir
-        if radbdir not in os.environ["PATH"]:
-            native_path = os.path.join(path_RadFiles, sys.platform, 'bin')
-            if native_path in os.environ["PATH"]:
-                os.environ["PATH"].replace(native_path, radbdir)
-            else:
-               os.environ["PATH"] += '{0}{1}'.format(evsep[sys.platform], radbdir)
-        os.environ["PATH"] += "{0}{1}{0}{2}{0}{3}".format(evsep[sys.platform], epdir, ofbdir, os.path.join(path_Python, sys.platform, 'bin'))
-        sys.path.append(ofbdir)
 
 classes = (VIPreferences, ViNetwork, No_Loc, So_Vi_Loc, No_Vi_SP, NODE_OT_SunPath,
            NODE_OT_TextUpdate, NODE_OT_FileSelect, NODE_OT_HdrSelect, VI_PT_3D,
