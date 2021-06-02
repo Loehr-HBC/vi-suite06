@@ -55,8 +55,8 @@ def path_update():
     ### update paths based on the addon-preferences (access to prefs is secured)
     vi_prefs = bpy.context.preferences.addons[addon_name].preferences # get pref
     # these are the paths we expect as base for relative paths in the preferences
-    bases = [bpy.app.binary_path, *addon_utils.paths(),
-        bpy.app.binary_path_python, *bpy.utils.script_paths()]
+    bases = [os.path.dirname(bpy.app.binary_path), bpy.app.binary_path,
+        *addon_utils.paths(), bpy.app.binary_path_python, *bpy.utils.script_paths()]
     bases_b = [ # these paths shouldn't be bases, but who knows ...
         bpy.utils.user_resource("CONFIG"), bpy.utils.user_resource("DATAFILES"),
         bpy.utils.user_resource("SCRIPTS"),bpy.utils.user_resource("AUTOSAVE"),
