@@ -453,10 +453,3 @@ def histogram(dir, var, bins, nsector, normed=False, blowto=False):
         table = table*100/table.sum()
 
     return dir_edges, var_bins, table
-
-
-
-
-
-
-
